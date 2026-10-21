@@ -1,0 +1,116 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { mergePathValues } from './hostEnvironment.js'
+export { expandHomePath } from './providers/providerLaunch.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const packagedMembraneServerPath = process.resourcesPath
+  ? path.join(process.resourcesPath, 'membraneMcpServer.js')
+  : undefined
+const membraneServerPath =
+  packagedMembraneServerPath && fs.existsSync(packagedMembraneServerPath)
+    ? packagedMembraneServerPath
+    : path.join(__dirname, 'membraneMcpServer.js')
+
+export function buildPath() {
+  return mergePathValues([process.env.PATH])
+}
+
+export function claudeCommand() {
+  return process.env.ORRERY_CLAUDE_BIN || 'claude'
+}
+
+export const membraneToolNames = [
+  'mcp__orrery_membrane__read_collaboration_updates',
+  'mcp__orrery_membrane__post_collaboration_message',
+  'mcp__orrery_membrane__set_discussion_assessment',
+  'mcp__orrery_membrane__create_session',
+  'mcp__orrery_membrane__resume_session',
+  'mcp__orrery_membrane__deliver',
+  'mcp__orrery_membrane__activate',
+  'mcp__orrery_membrane__approve_activation',
+  'mcp__orrery_membrane__deny_activation',
+  'mcp__orrery_membrane__inspect_scope',
+  'mcp__orrery_membrane__inspect_workflow_wakeups',
+  'mcp__orrery_membrane__acknowledge_workflow_wakeup',
+  'mcp__orrery_membrane__advance_plan_council',
+  'mcp__orrery_membrane__propose_workflow',
+  'mcp__orrery_membrane__propose_workflow_patch',
+  'mcp__orrery_membrane__revise_workflow',
+  'mcp__orrery_membrane__explain_workflow',
+  'mcp__orrery_membrane__commit_workflow',
+  'mcp__orrery_membrane__abort_workflow',
+  'mcp__orrery_membrane__report',
+  'mcp__orrery_membrane__link_sessions',
+]
+
+export function membraneSystemPrompt() {
+  return [
+    'You are running inside Orrery.',
+    'Collaboration members use read_collaboration_updates, post_collaboration_message, and set_discussion_assessment only. Read shared updates first; only explicit posts are public. Do not use graph control tools from a collaboration member session.',
+    'Use the orrery_membrane MCP tools when you need to affect the agent graph:',
+    '- mcp__orrery_membrane__create_session creates a real downstream session/node.',
+    '- mcp__orrery_membrane__resume_session appends a user message to an existing session/node and resumes it.',
+    '- mcp__orrery_membrane__deliver writes data into another session\'s context channel without activating it (omit content to forward your latest turn summary and diff).',
+    '- mcp__orrery_membrane__activate runs one turn on an existing session; the runtime prefixes your note with the list of its unread channel deliveries.',
+    '- mcp__orrery_membrane__approve_activation / deny_activation decide a pending subscription activation you govern (you receive these requests with a slotKey).',
+    '- Master sessions use inspect_scope, inspect_workflow_wakeups, acknowledge_workflow_wakeup, advance_plan_council, propose_workflow, propose_workflow_patch, revise_workflow, explain_workflow, commit_workflow, and abort_workflow for durable workflow governance.',
+    '- Workflow authoring is always propose first. A proposal is data only. Never call commit_workflow until the proposal is visibly human-approved; never replace it with raw create/resume/link calls.',
+    '- Master proposals may omit provider/model/cwd/runtime settings for new participants that should safely inherit the Master; Plan Council is normalized to read-only plan mode.',
+    '- Workflow tools return compact JSON. Read ids and status directly from the tool result; never use shell commands to locate or parse MCP tool-result files.',
+    '- mcp__orrery_membrane__report submits typed verdict, relationship, or info data to the graph blackboard.',
+    '- mcp__orrery_membrane__link_sessions declares a visible relationship edge to another session/node.',
+    'Sessions have a context channel (an inbox directory outside the repo). Use deliveries marked as included inline directly. For other deliveries, read only the exact file paths listed in your activation message; never reconstruct paths.',
+    'Do not invent session ids. Use ids returned by create_session or provided in the user prompt.',
+  ].join('\n')
+}
+
+function writeJson0600(filePath, value) {
+  fs.writeFileSync(filePath, JSON.stringify(value), {
+    encoding: 'utf8',
+    mode: 0o600,
+  })
+  fs.chmodSync(filePath, 0o600)
+}
+
+export function createMcpHandoff(membrane, { keepBootstrap = false, alwaysLoadTools = false } = {}) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'orrery-membrane-'))
+  fs.chmodSync(dir, 0o700)
+
+  const bootstrapPath = path.join(dir, 'bootstrap.json')
+  const configPath = path.join(dir, 'mcp-config.json')
+
+  writeJson0600(bootstrapPath, {
+    bridgeUrl: membrane.bridgeUrl,
+    token: membrane.token,
+    ...(membrane.toolProfile === 'collaboration' ? { toolProfile: 'collaboration' } : {}),
+  })
+
+  writeJson0600(configPath, {
+    mcpServers: {
+      orrery_membrane: {
+        command: process.execPath,
+        args: [membraneServerPath],
+        ...(alwaysLoadTools ? { alwaysLoad: true } : {}),
+        env: {
+          // A packaged Electron executable ignores a JavaScript entrypoint
+          // unless it is explicitly launched in Node mode. This remains a
+          // no-op when headless tests already run under Node.
+          ELECTRON_RUN_AS_NODE: '1',
+          ORRERY_MEMBRANE_BOOTSTRAP_FILE: bootstrapPath,
+          ...(keepBootstrap ? { ORRERY_MEMBRANE_BOOTSTRAP_KEEP: '1' } : {}),
+        },
+      },
+    },
+  })
+
+  return { dir, configPath }
+}
+
+export function cleanupMcpHandoff(handoff) {
+  if (handoff) {
+    fs.rmSync(handoff.dir, { recursive: true, force: true })
+  }
+}

@@ -1,0 +1,310 @@
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import type { AgentSession, GraphState, ProjectContext, ProviderSetupStatus, WorkMode } from '@/shared/graph-state';
+import { defaultProviderRuntimeSettings, providerReasoningEfforts, type ProviderInstance, type ProviderKind, type ProviderReasoningEffort, type ProviderRuntimeMode } from '@/shared/provider-runtime';
+import { providerCapability, providerRuntimeModeCapability } from '@/shared/provider-runtime';
+import type { RuntimeApi, RuntimeClient } from '@/runtime-client';
+import { defaultWorkspaceCwd, demoMode, latestSessionCwd, projectNameFromCwd, projectOptionsFromSessions, validateProjectCwd } from '@/lib/workspace';
+import { invalidCwdsFromDiagnostics } from '@/lib/diagnostics';
+import { providerInstanceForKind } from '@/lib/provider-catalog';
+import { sessionSort } from '@/lib/session-display';
+import { providerSetupProfileFingerprint } from '@shared/provider-setup';
+
+export function useNewChatSetup({
+  runtimeApi,
+  runtimeClient,
+  runtimeUnavailableText,
+  setRuntimeState,
+  setRuntimeError,
+  sessions,
+  invalidProjectCwds,
+  providerInstances,
+  selectedSession,
+}: {
+  runtimeApi: RuntimeApi | undefined;
+  runtimeClient: RuntimeClient;
+  runtimeUnavailableText: string;
+  setRuntimeState: Dispatch<SetStateAction<GraphState>>;
+  setRuntimeError: Dispatch<SetStateAction<string | undefined>>;
+  sessions: AgentSession[];
+  invalidProjectCwds: Set<string>;
+  providerInstances: ProviderInstance[];
+  selectedSession: AgentSession | undefined;
+}) {
+  const [newProviderKind, setNewProviderKind] = useState<ProviderKind>('claude-code');
+  const [newProviderInstanceId, setNewProviderInstanceId] = useState(
+    () => providerInstanceForKind(providerInstances, 'claude-code').providerInstanceId,
+  );
+  const [newCwd, setNewCwd] = useState(defaultWorkspaceCwd);
+  const [newWorkMode, setNewWorkMode] = useState<WorkMode>('local');
+  const [newBranch, setNewBranch] = useState('');
+  const [newRuntimeMode, setNewRuntimeMode] = useState<ProviderRuntimeMode>(defaultProviderRuntimeSettings.runtimeMode);
+  const [newModel, setNewModel] = useState('');
+  const [newReasoningEffort, setNewReasoningEffort] = useState<ProviderReasoningEffort>('medium');
+  const [newProjectContext, setNewProjectContext] = useState<ProjectContext>();
+  const [providerSetupStatus, setProviderSetupStatus] = useState<ProviderSetupStatus>();
+  const [isLoadingProviderSetupStatus, setIsLoadingProviderSetupStatus] = useState(false);
+  const [savingProviderInstanceId, setSavingProviderInstanceId] = useState<string>();
+  const [providerInstanceError, setProviderInstanceError] = useState<string>();
+  const projectContextSeqRef = useRef(0);
+  const providerSetupSeqRef = useRef(0);
+
+  const newProviderInstance =
+    providerInstances.find(
+      (instance) =>
+        instance.kind === newProviderKind &&
+        instance.providerInstanceId === newProviderInstanceId,
+    ) ?? providerInstanceForKind(providerInstances, newProviderKind);
+  const newProviderInstanceSetupKey = providerSetupProfileFingerprint(newProviderInstance);
+
+  const changeNewProviderKind = useCallback((providerKind: ProviderKind) => {
+    setNewProviderKind(providerKind);
+    setNewProviderInstanceId(
+      providerInstanceForKind(providerInstances, providerKind).providerInstanceId,
+    );
+    setNewModel('');
+    const reasoningEfforts = providerReasoningEfforts(providerKind);
+    if (reasoningEfforts.length > 0) {
+      setNewReasoningEffort((current) =>
+        reasoningEfforts.includes(current)
+          ? current
+          : (reasoningEfforts.includes('medium') ? 'medium' : reasoningEfforts[0]),
+      );
+    }
+    const runtimeModes = providerCapability(providerKind).runtimeModes;
+    setNewRuntimeMode((current) => (providerRuntimeModeCapability(providerKind, current) ? current : (runtimeModes[0]?.id ?? defaultProviderRuntimeSettings.runtimeMode)));
+  }, [providerInstances]);
+
+  const changeNewProviderInstanceId = useCallback((providerInstanceId: string) => {
+    const instance = providerInstances.find(
+      (candidate) =>
+        candidate.kind === newProviderKind &&
+        candidate.providerInstanceId === providerInstanceId,
+    );
+    if (!instance) return;
+    setNewProviderInstanceId(instance.providerInstanceId);
+    setNewModel('');
+  }, [newProviderKind, providerInstances]);
+
+  useEffect(() => {
+    if (newProviderInstance.providerInstanceId !== newProviderInstanceId) {
+      setNewProviderInstanceId(newProviderInstance.providerInstanceId);
+      setNewModel('');
+    }
+  }, [newProviderInstance.providerInstanceId, newProviderInstanceId]);
+
+  const newCwdValidation = useMemo(() => validateProjectCwd(newCwd), [newCwd]);
+  const newChatProjects = useMemo(
+    () => projectOptionsFromSessions(sessions, newCwd, defaultWorkspaceCwd(), newProjectContext, invalidProjectCwds),
+    [invalidProjectCwds, newCwd, newProjectContext, sessions],
+  );
+
+  const chooseNewChatProject = useCallback(async () => {
+    if (!runtimeApi) {
+      setRuntimeError(runtimeUnavailableText);
+      return;
+    }
+
+    try {
+      const result = await runtimeApi.chooseProjectFolder();
+      if (result.canceled || !result.cwd) {
+        return;
+      }
+
+      setNewCwd(result.cwd);
+      setNewWorkMode('local');
+      setNewBranch('');
+      setRuntimeError(undefined);
+    } catch (error) {
+      setRuntimeError(error instanceof Error ? error.message : String(error));
+    }
+  }, [runtimeApi, runtimeUnavailableText, setRuntimeError]);
+
+  const saveProviderInstance = useCallback(
+    async (providerInstance: ProviderInstance) => {
+      if (!runtimeApi) {
+        setProviderInstanceError(runtimeUnavailableText);
+        return false;
+      }
+
+      setSavingProviderInstanceId(providerInstance.providerInstanceId);
+      setProviderInstanceError(undefined);
+      try {
+        const result = await runtimeApi.upsertProviderInstance(providerInstance);
+        setRuntimeState(result.state);
+        return true;
+      } catch (error) {
+        setProviderInstanceError(error instanceof Error ? error.message : String(error));
+        return false;
+      } finally {
+        setSavingProviderInstanceId(undefined);
+      }
+    },
+    [runtimeApi, runtimeUnavailableText, setRuntimeState],
+  );
+
+  const restoreCwdFallback = useCallback((state: GraphState) => {
+    setNewCwd((current) => {
+      if (current.trim().length > 0) {
+        return current;
+      }
+
+      const restoredSessions = Object.values(state.sessions).sort(sessionSort);
+      return latestSessionCwd(restoredSessions, invalidCwdsFromDiagnostics(state.diagnostics ?? [])) ?? defaultWorkspaceCwd();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (demoMode || runtimeClient.kind !== 'http') {
+      return;
+    }
+
+    let isMounted = true;
+    runtimeClient
+      .getConfig()
+      .then((config) => {
+        const defaultCwd = config.workspace?.defaultCwd;
+        if (!isMounted || !defaultCwd) {
+          return;
+        }
+
+        setNewCwd((current) => (current.trim().length > 0 ? current : defaultCwd));
+      })
+      .catch((error: unknown) => {
+        if (isMounted) {
+          setRuntimeError(error instanceof Error ? error.message : String(error));
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [runtimeClient, setRuntimeError]);
+
+  useEffect(() => {
+    if (!runtimeApi || !newCwdValidation.ok) {
+      setNewProjectContext(undefined);
+      return;
+    }
+
+    const requestId = projectContextSeqRef.current + 1;
+    projectContextSeqRef.current = requestId;
+    const cwd = newCwd.trim();
+    let isMounted = true;
+
+    runtimeApi
+      .getProjectContext({ cwd })
+      .then((context) => {
+        if (isMounted && projectContextSeqRef.current === requestId) {
+          setNewProjectContext(context);
+        }
+      })
+      .catch((error: unknown) => {
+        if (isMounted && projectContextSeqRef.current === requestId) {
+          setNewProjectContext({
+            cwd,
+            projectName: projectNameFromCwd(cwd),
+            isGitRepo: false,
+            branches: [],
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [newCwd, newCwdValidation.ok, runtimeApi]);
+
+  useEffect(() => {
+    if (selectedSession || !runtimeApi) {
+      setProviderSetupStatus(undefined);
+      setIsLoadingProviderSetupStatus(false);
+      return;
+    }
+
+    const requestId = providerSetupSeqRef.current + 1;
+    providerSetupSeqRef.current = requestId;
+    let isMounted = true;
+    setIsLoadingProviderSetupStatus(true);
+
+    runtimeApi
+      .getProviderSetupStatus({
+        providerKind: newProviderKind,
+        providerInstanceId: newProviderInstance.providerInstanceId,
+        cwd: newCwd.trim() || undefined,
+      })
+      .then((status) => {
+        if (isMounted && providerSetupSeqRef.current === requestId) {
+          setProviderSetupStatus(status);
+        }
+      })
+      .catch((error: unknown) => {
+        if (isMounted && providerSetupSeqRef.current === requestId) {
+          setProviderSetupStatus({
+            providerKind: newProviderKind,
+            providerInstanceId: newProviderInstance.providerInstanceId,
+            profileFingerprint: newProviderInstanceSetupKey,
+            cwd: newCwd.trim(),
+            generatedAt: new Date().toISOString(),
+            checks: [
+              {
+                id: 'setup-status',
+                label: 'Setup status',
+                status: 'error',
+                message: error instanceof Error ? error.message : String(error),
+              },
+            ],
+          });
+        }
+      })
+      .finally(() => {
+        if (isMounted && providerSetupSeqRef.current === requestId) {
+          setIsLoadingProviderSetupStatus(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [newCwd, newProviderInstance.providerInstanceId, newProviderInstanceSetupKey, newProviderKind, runtimeApi, selectedSession]);
+
+  useEffect(() => {
+    if (newWorkMode === 'worktree' && newProjectContext?.cwd === newCwd.trim() && newProjectContext.isGitRepo === false) {
+      setNewWorkMode('local');
+      setNewBranch('');
+    }
+  }, [newCwd, newProjectContext, newWorkMode]);
+
+  return {
+    newProviderKind,
+    newProviderInstanceId: newProviderInstance.providerInstanceId,
+    newCwd,
+    setNewCwd,
+    newWorkMode,
+    setNewWorkMode,
+    newBranch,
+    setNewBranch,
+    newRuntimeMode,
+    setNewRuntimeMode,
+    newModel,
+    setNewModel,
+    newReasoningEffort,
+    setNewReasoningEffort,
+    newProjectContext,
+    providerSetupStatus,
+    isLoadingProviderSetupStatus,
+    savingProviderInstanceId,
+    providerInstanceError,
+    newProviderInstance,
+    changeNewProviderKind,
+    changeNewProviderInstanceId,
+    newCwdValidation,
+    newChatProjects,
+    chooseNewChatProject,
+    saveProviderInstance,
+    restoreCwdFallback,
+  };
+}
+
+export type NewChatSetupState = ReturnType<typeof useNewChatSetup>;

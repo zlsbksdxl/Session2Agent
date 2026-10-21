@@ -1,0 +1,444 @@
+import { memo } from 'react';
+import { BaseEdge, EdgeLabelRenderer, Handle, type Edge, type EdgeProps, type Node, type NodeProps, Position, getBezierPath } from '@xyflow/react';
+import { Activity, Bot, Clock, GitBranch, RotateCw, Snowflake, SquareTerminal, Webhook, Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { TermChip } from '@/components/terminal';
+import { agentIcons, modelFamilyIcon, vendorIcons, vendorLabels } from '@/components/brand-icons';
+import {
+  type AgentNodeData,
+  type GraphEdgeData,
+  type ClusterNodeData,
+  type LoopBadgeData,
+  type SourceNodeData,
+  type TimerNodeData,
+  edgeKindClassNames,
+  edgeKindLabels,
+  edgeKindStrokes,
+  edgeDisplayLabel,
+} from '@/lib/graph-view';
+import { statusLabels, statePillBase, nodeStatePillCls } from '@/lib/session-display';
+import { formatClock } from '@/lib/format';
+import { DraftAgentNode, DraftRelationshipEdge } from '@/components/draft-canvas';
+
+export const AgentNode = memo(function AgentNode({ data, selected }: NodeProps<Node<AgentNodeData>>) {
+  const isMaster = data.role === 'master';
+  const freezeReason = data.freezeReason ?? data.masterReason;
+  const AgentGlyph = data.providerKind ? agentIcons[data.providerKind] : Bot;
+  const VendorGlyph = data.providerKind ? vendorIcons[data.providerKind] : undefined;
+  const modelFamily = modelFamilyIcon(data.model, data.providerKind);
+  return (
+    <div
+      className={cn(
+        'w-[300px] rounded-xl border bg-card font-mono shadow-sm transition',
+        data.frozen ? 'border-border bg-muted/50 opacity-75' : isMaster ? 'border-term-amber/50' : data.isManaged ? 'border-term-cyan/45' : 'border-border',
+        selected && '!border-term-accent-hi/60 ring-2 ring-term-accent-hi/50',
+      )}
+    >
+      <Handle
+        id="target-left"
+        type="target"
+        position={Position.Left}
+        style={{ top: '62%' }}
+        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        aria-label={`Connect into ${data.label} from the left`}
+      />
+      <Handle
+        id="source-left"
+        type="source"
+        position={Position.Left}
+        style={{ top: '38%' }}
+        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        aria-label={`Connect from ${data.label} on the left`}
+      />
+      <div className="flex items-center gap-2.5 px-3.5 pb-2.5 pt-3">
+        {/* Identity trio (agent harness / model family / model vendor): the
+            avatar tile is the harness, its corner badge the vendor, and the
+            subline carries the model id with its family glyph. */}
+        <div
+          className={cn(
+            'relative flex size-8 shrink-0 items-center justify-center rounded-lg border',
+            isMaster ? 'border-term-amber/45 bg-term-amber/10 text-term-amber' : 'border-term-accent/35 bg-term-accent/10 text-accent-ink',
+            data.status === 'running' && 'animate-pulse',
+          )}
+          title={data.agent}
+        >
+          <AgentGlyph className="size-[17px]" />
+          {VendorGlyph ? (
+            <span
+              className="absolute -bottom-[5px] -right-[5px] flex size-[15px] items-center justify-center rounded-[5px] border border-border bg-background text-muted-foreground"
+              title={data.providerKind ? vendorLabels[data.providerKind] : undefined}
+            >
+              <VendorGlyph className="size-[9px]" />
+            </span>
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[12.5px] font-semibold text-foreground" title={data.label}>
+            {data.label}
+          </div>
+          {modelFamily && data.model ? (
+            <div className="mt-[3px] flex min-w-0 items-center gap-1.5 text-[9.5px] leading-none text-muted-foreground" title={data.model}>
+              <modelFamily.Icon className={cn('size-2.5 shrink-0', modelFamily.brandClass)} />
+              <span className="truncate">{data.model}</span>
+            </div>
+          ) : null}
+        </div>
+        {data.frozen || isMaster || data.status !== 'idle' ? (
+          <span className={cn(statePillBase, nodeStatePillCls(data.status, data.role, data.frozen))}>
+            {data.frozen ? 'frozen' : isMaster ? 'master' : statusLabels[data.status].toLowerCase()}
+          </span>
+        ) : null}
+      </div>
+
+      {data.clusterLabel || data.isManaged ? (
+        <div className="flex flex-wrap gap-1.5 px-3.5 pb-2">
+          {data.clusterLabel ? <TermChip>{data.clusterLabel}</TermChip> : null}
+          {data.isManaged ? (
+            <span className="inline-flex items-center gap-1 rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10.5px] leading-none text-cyan-700 dark:text-cyan-300">
+              managed
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="px-3.5 pb-3">
+        {data.latestVerdict ? (
+          <>
+            <div
+              className={cn(
+                'flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-[10.5px] font-semibold tracking-[0.04em]',
+                data.latestVerdict === 'clean'
+                  ? 'border-term-accent/30 bg-term-accent/10 text-term-accent'
+                  : 'border-term-amber/40 bg-term-amber/10 text-term-amber',
+              )}
+            >
+              <span>{data.latestVerdict === 'clean' ? '✓' : '!'}</span>
+              <span className="truncate">
+                {data.latestVerdict}
+                {data.latestReportIssueCount !== undefined ? ` · ${data.latestReportIssueCount} issues` : ''}
+              </span>
+            </div>
+            {data.latestReportSummary ? (
+              <p className="mt-1.5 truncate text-[11px] leading-4 text-muted-foreground" title={data.latestReportSummary}>
+                {data.latestReportSummary}
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <div className="rounded-lg border border-border bg-muted/40 px-2.5 py-2">
+            <p className="line-clamp-2 break-words text-[11px] leading-5 text-muted-foreground">{data.description}</p>
+          </div>
+        )}
+
+        {data.frozen ? (
+          <div className="mt-2 rounded-lg border border-border bg-muted/40 px-2.5 py-2">
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <Snowflake className="size-3" />
+              freeze
+            </div>
+            {freezeReason ? <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground">{freezeReason}</p> : null}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="flex items-center gap-1.5 border-t border-border px-3.5 py-2 text-[11px] text-muted-foreground">
+        <Activity className="size-3 text-accent-ink" />
+        <span className="tabular-nums text-foreground/80">{data.messageCount}</span>
+        msgs
+        {data.lastActivityTs ? (
+          <span className="ml-auto tabular-nums text-term-faint" title="Last activity">
+            {formatClock(data.lastActivityTs)}
+          </span>
+        ) : null}
+      </div>
+      <Handle
+        id="target-right"
+        type="target"
+        position={Position.Right}
+        style={{ top: '62%' }}
+        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        aria-label={`Connect into ${data.label} from the right`}
+      />
+      <Handle
+        id="source-right"
+        type="source"
+        position={Position.Right}
+        style={{ top: '38%' }}
+        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        aria-label={`Connect from ${data.label} on the right`}
+      />
+    </div>
+  );
+});
+
+export const ClusterBoundaryNode = memo(function ClusterBoundaryNode({ data }: NodeProps<Node<ClusterNodeData>>) {
+  return (
+    <div
+      className={cn(
+        'h-full w-full rounded-xl border border-dashed border-cyan-500/45 bg-cyan-500/[0.04] px-3 py-2.5 font-mono shadow-sm',
+        data.frozen && 'border-border bg-muted/30 opacity-70',
+      )}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-cyan-700 dark:text-cyan-300">
+          <span className="opacity-70">❯</span>
+          {data.label}
+        </span>
+        <span className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] tabular-nums text-cyan-700 dark:text-cyan-300">
+          {data.nodeCount} managed
+        </span>
+        {data.masterLabel ? (
+          <span className="rounded-md border border-term-amber/30 bg-term-amber/10 px-2 py-0.5 text-[10px] text-amber-700 dark:text-term-amber">
+            ◆ {data.masterLabel}
+          </span>
+        ) : null}
+        {data.frozen ? (
+          <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+            <Snowflake className="size-2.5" />
+            frozen
+          </span>
+        ) : null}
+      </div>
+      {data.policySummary ? <div className="mt-1.5 text-[10.5px] text-cyan-700/80 dark:text-cyan-300/80">{data.policySummary}</div> : null}
+      {data.freezeReason ? <div className="mt-1 line-clamp-1 text-[10.5px] text-muted-foreground">{data.freezeReason}</div> : null}
+    </div>
+  );
+});
+
+// The clock as a canvas presence (L4): the visible origin of a schedule
+// edge, so "the graph wakes itself" reads at a glance.
+export const ClockNode = memo(function ClockNode({ data }: NodeProps<Node<TimerNodeData>>) {
+  return (
+    <div
+      className={cn(
+        'rounded-xl border border-lime-600/50 bg-lime-500/10 px-3 py-2 font-mono shadow-sm',
+        data.stopped && 'border-border bg-muted/40 opacity-70',
+      )}
+    >
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-lime-700 dark:text-lime-300">
+        <Clock className="size-3.5" />
+        <span>{data.label}</span>
+        {data.stopped ? <span className="text-muted-foreground">· stopped</span> : null}
+      </div>
+      <div className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+        {data.lastTickAt ? `last tick ${formatClock(data.lastTickAt)}` : 'no ticks yet'}
+      </div>
+      <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-term-accent-hi" />
+    </div>
+  );
+});
+
+const sourceKindIcons: Record<string, typeof Activity> = {
+  git: GitBranch,
+  script: SquareTerminal,
+  webhook: Webhook,
+  manual: Zap,
+};
+
+// An external event source as a canvas presence (L2): the visible origin
+// of an external edge — the graph listens to the outside world.
+export const SourceNode = memo(function SourceNode({ data }: NodeProps<Node<SourceNodeData>>) {
+  const source = data.source;
+  const Icon = sourceKindIcons[source.kind] ?? Activity;
+  return (
+    <div
+      className={cn(
+        'max-w-[220px] rounded-xl border border-sky-600/50 bg-sky-500/10 px-3 py-2 font-mono shadow-sm',
+        data.removed && 'border-border bg-muted/40 opacity-70',
+      )}
+      title={source.lastError ?? undefined}
+    >
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-sky-700 dark:text-sky-300">
+        <Icon className="size-3.5 shrink-0" />
+        <span className="truncate">{source.label ?? `external.${source.topic}`}</span>
+        {data.removed ? <span className="shrink-0 text-muted-foreground">· removed</span> : null}
+      </div>
+      <div className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+        {source.lastError ? (
+          <span className="text-rose-600 dark:text-rose-400">adapter error</span>
+        ) : source.lastEventAt ? (
+          `last event ${formatClock(source.lastEventAt)}`
+        ) : (
+          'no events yet'
+        )}
+      </div>
+      <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-sky-500" />
+    </div>
+  );
+});
+
+const loopBadgeStatusCls: Record<string, string> = {
+  active: 'border-lime-600/50 bg-lime-500/10 text-lime-700 dark:text-lime-300',
+  waiting: 'border-term-amber/50 bg-term-amber/10 text-amber-700 dark:text-term-amber',
+  success: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+  warning: 'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  danger: 'border-rose-500/50 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  neutral: 'border-border bg-muted/60 text-muted-foreground',
+};
+
+// The ring badge (L4): the loop as one clickable, readable whole — lap
+// count, state, and stop condition without opening any session.
+export const LoopBadgeNode = memo(function LoopBadgeNode({ data }: NodeProps<Node<LoopBadgeData>>) {
+  const loop = data.loop;
+  const product = data.product;
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={`Open Loop details: ${product.headline}, lap ${product.lapLabel}`}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.currentTarget.click();
+        }
+      }}
+      className={cn(
+        'w-[220px] cursor-pointer rounded-xl border px-3 py-2 font-mono shadow-sm transition hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-term-accent-hi/60',
+        loopBadgeStatusCls[product.tone] ?? loopBadgeStatusCls.neutral,
+      )}
+      title="Open the loop timeline"
+    >
+      <div className="flex items-center gap-1.5 text-[11.5px] font-semibold">
+        <RotateCw className={cn('size-3.5', product.tone === 'active' && 'animate-spin [animation-duration:3s]')} />
+        <span className="truncate">{product.headline}</span>
+        <span className="ml-auto shrink-0 tabular-nums">{loop.lapCap === undefined ? loop.lapCount : `${loop.lapCount}/${loop.lapCap}`}</span>
+      </div>
+      <div className="mt-0.5 truncate text-[10px] text-muted-foreground">{product.stopReason ?? product.detail}</div>
+    </div>
+  );
+});
+
+export const nodeTypes = {
+  agent: AgentNode,
+  'draft-agent': DraftAgentNode,
+  cluster: ClusterBoundaryNode,
+  clock: ClockNode,
+  loop: LoopBadgeNode,
+  source: SourceNode,
+};
+
+export function ReadabilityEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  markerEnd,
+  style,
+  selected,
+  data,
+}: EdgeProps<Edge<GraphEdgeData>>) {
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+  const edgeData = data as GraphEdgeData;
+  const reason = edgeData.freezeReason ?? edgeData.masterReason;
+  const isSubscription = edgeData.kind === 'subscription';
+  const stopped = edgeData.subscriptionState === 'stopped';
+  const displayLabel = edgeDisplayLabel(edgeData);
+  // Auto-generated route labels ("systems → delivery") restate what the edge
+  // already draws between its nodes; only human-authored labels earn chip
+  // space. Everything dropped from the chip lands in the tooltip.
+  const chipLabel = isSubscription && (displayLabel === edgeKindLabels.subscription || /[→›]|->/.test(displayLabel)) ? undefined : displayLabel;
+  const tooltip = [
+    edgeData.label,
+    isSubscription && edgeData.summary ? `${edgeData.summary}${edgeData.gate ? ` · gate ${edgeData.gate}` : ''}` : edgeData.summary,
+    edgeData.untilSummary,
+    stopped ? 'stopped' : undefined,
+    reason,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  return (
+    <>
+      <BaseEdge
+        id={id}
+        path={edgePath}
+        markerEnd={markerEnd}
+        style={{
+          ...style,
+          stroke: edgeKindStrokes[edgeData.kind],
+          strokeWidth: selected ? 2.5 : edgeData.kind === 'subscription' ? 2 : 1.7,
+          strokeDasharray:
+            edgeData.kind === 'resume-session'
+              ? '6 4'
+              : edgeData.kind === 'report'
+                ? '2 4'
+                : edgeData.kind === 'freeze'
+                  ? '8 5'
+                  : edgeData.kind === 'link'
+                    ? '3 3'
+                    : edgeData.kind === 'subscription'
+                      ? '10 5'
+                      : undefined,
+          opacity: edgeData.frozen ? 0.55 : 1,
+        }}
+      />
+      <EdgeLabelRenderer>
+        <button
+          type="button"
+          className={cn(
+            'nodrag nopan pointer-events-auto absolute flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-[3px] font-mono text-[9.5px] leading-none shadow-sm backdrop-blur-sm',
+            stopped || edgeData.frozen ? 'border-border bg-background/85 text-muted-foreground' : edgeKindClassNames[edgeData.kind],
+            edgeData.recent && 'orrery-edge-label-recent',
+          )}
+          style={{
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+            zIndex: 40,
+          }}
+          title={tooltip}
+          aria-label={`Inspect Relationship: ${edgeData.label}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            edgeData.inspect?.();
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            event.stopPropagation();
+            edgeData.inspect?.();
+          }}
+        >
+          {isSubscription ? null : <span className="tabular-nums opacity-60">#{edgeData.sequence}</span>}
+          {chipLabel ? <span className="max-w-[110px] truncate">{chipLabel}</span> : null}
+          {isSubscription ? (
+            <>
+              {edgeData.gate ? <span aria-hidden="true">{edgeData.gate === 'auto' ? '⚡' : edgeData.gate === 'master' ? '◆' : '⊘'}</span> : null}
+              {edgeData.summary ? <span className="max-w-[130px] truncate">{edgeData.summary}</span> : null}
+              {edgeData.firings !== undefined && (edgeData.maxFirings !== undefined || edgeData.firings > 0) ? (
+                <span className="tabular-nums opacity-75">
+                  {edgeData.firings}
+                  {edgeData.maxFirings !== undefined ? `/${edgeData.maxFirings}` : ''}
+                </span>
+              ) : null}
+              {stopped ? (
+                <span className="opacity-60" aria-hidden="true">
+                  ⏹
+                </span>
+              ) : null}
+              {edgeData.pendingStatus ? <span className="text-term-amber">● {edgeData.pendingStatus}</span> : null}
+            </>
+          ) : (
+            <>
+              {edgeData.verdict ? <span>{`${edgeData.verdict === 'clean' ? '✓' : '!'} ${edgeData.verdict}`}</span> : null}
+              {edgeData.issueCount ? <span className="tabular-nums">{edgeData.issueCount} iss</span> : null}
+            </>
+          )}
+        </button>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+
+export const edgeTypes = {
+  readability: ReadabilityEdge,
+  draft: DraftRelationshipEdge,
+};

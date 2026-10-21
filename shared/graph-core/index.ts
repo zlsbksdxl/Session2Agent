@@ -1,0 +1,50 @@
+// graph-core: the pure, IO-free logic of the session graph kernel.
+
+export * from './types.js'
+export { applyEvent, fold } from './fold.js'
+export {
+  graphScopeId,
+  scopeChain,
+  lowestCommonScope,
+  governingMaster,
+  reportRoute,
+} from './scope.js'
+export {
+  evaluate,
+  matchesPattern,
+  eventSourceSession,
+  type SchedulerDecision,
+} from './scheduler.js'
+export {
+  staticCheck,
+  defaultCycleMaxFirings,
+  type StaticCheckResult,
+  type StaticCheckViolation,
+} from './static-check.js'
+export {
+  parseDailyAt,
+  normalizeDailyAt,
+  nextDailyOccurrenceMs,
+  scheduleDelayMs,
+  scheduleSummary,
+  type ScheduleOn,
+} from './schedule.js'
+export {
+  externalSourceKinds,
+  reservedExternalTopics,
+  isValidExternalTopic,
+  defaultMinIntervalSecondsByKind,
+  sourceMinIntervalSeconds,
+  externalIngestionDecision,
+  externalSourceSummary,
+  type IngestionDecision,
+} from './external.js'
+export {
+  loopsOf,
+  loopTimelineOf,
+  type LoopView,
+  type LoopViewKind,
+  type LoopViewStatus,
+  type LoopLap,
+  type LoopTimeline,
+} from './loop-view.js'
