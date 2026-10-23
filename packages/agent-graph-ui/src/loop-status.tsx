@@ -12,7 +12,7 @@ export function LoopStatus({
   return (
     <header className="lag-header">
       <div>
-        <p className="lag-eyebrow">looperators</p>
+        <p className="lag-eyebrow">SessionFlow</p>
         <h2>Agent Loop</h2>
       </div>
       <div className="lag-badges" aria-label="Loop status">

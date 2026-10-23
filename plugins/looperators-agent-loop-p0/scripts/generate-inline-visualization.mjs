@@ -677,7 +677,7 @@ ${subagentNodes}
     elements.followUp.disabled = true;
     setText(elements.followUpStatus, "Waiting for follow-up confirmation…");
     const prompt =
-      'Explain the looperators Agent Loop node with stable identifier "' +
+      'Explain the SessionFlow Agent Loop node with stable identifier "' +
       node.id +
       '". Its observed kind is "' +
       node.kind +

@@ -274,7 +274,7 @@ function renderGraph(
     model.status,
   )}" data-testid="inline-agent-loop-graph">
     <header class="lag-inline-header">
-      <div><p class="lag-inline-eyebrow">looperators</p><h2>Agent Loop</h2></div>
+      <div><p class="lag-inline-eyebrow">SessionFlow</p><h2>Agent Loop</h2></div>
       <div class="lag-inline-badges" aria-label="Loop status">
         <span class="lag-inline-badge lag-inline-verified">verified</span>
         <span class="lag-inline-badge" data-tone="${statusTone(

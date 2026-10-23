@@ -41,7 +41,7 @@ function promptFor(intent: AgentGraphFollowUpIntent) {
   if (intent.kind === 'explain') {
     return `Explain ${selected ? `the selected Agent Loop item ${selected}` : 'this Agent Loop'} for run ${intent.runId}. Separate authoritative projection facts from inference.`;
   }
-  return `Please preview ${intent.kind} for looperators Agent Loop run ${intent.runId}. Do not mutate it until I confirm.`;
+  return `Please preview ${intent.kind} for SessionFlow Agent Loop run ${intent.runId}. Do not mutate it until I confirm.`;
 }
 
 if (rootElement && dataElement) {
@@ -75,7 +75,7 @@ if (rootElement && dataElement) {
               ? (intent) =>
                   window.openai?.sendFollowUpMessage?.({
                     prompt: promptFor(intent),
-                    title: `looperators Agent Loop ${intent.kind}`,
+                    title: `SessionFlow Agent Loop ${intent.kind}`,
                   })
               : undefined
           }

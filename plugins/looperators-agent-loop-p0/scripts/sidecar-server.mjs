@@ -41,7 +41,7 @@ const html = `<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>looperators Agent Loop sidecar</title>
+    <title>SessionFlow Agent Loop sidecar</title>
     <style>
       :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, sans-serif; }
       body { margin: 0; padding: 20px; background: #0a0f1e; color: #edf1ff; }
@@ -56,7 +56,7 @@ const html = `<!doctype html>
     </style>
   </head>
   <body>
-    <header><h1>looperators Agent Loop</h1><span id="status">connecting…</span></header>
+    <header><h1>SessionFlow Agent Loop</h1><span id="status">connecting…</span></header>
     <div id="graph"></div>
     <table>
       <thead><tr><th>#</th><th>event</th><th>turn</th><th>agent/tool</th></tr></thead>

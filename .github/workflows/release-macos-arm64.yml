@@ -1,13 +1,13 @@
-name: Release macOS arm64
+name: Release SessionFlow macOS arm64
 
 # Publishing locally or pushing a tag must not start a competing release build.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Stable release version, for example 0.2.0'
+        description: 'Stable release version, for example 0.2.1'
         required: true
-        default: '0.2.0'
+        default: '0.2.1'
         type: string
       signed:
         description: 'Use Developer ID signing and Apple notarization (requires all Apple credentials)'
@@ -123,9 +123,9 @@ jobs:
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
         run: |
           set -euo pipefail
-          app_path="outputs/release/mac-arm64/looperators.app"
+          app_path="outputs/release/mac-arm64/SessionFlow.app"
           if [[ ! -d "$app_path" ]]; then
-            echo "Packaged looperators.app was not found." >&2
+            echo "Packaged SessionFlow.app was not found." >&2
             exit 1
           fi
           codesign --verify --deep --strict --verbose=2 "$app_path"
@@ -154,7 +154,7 @@ jobs:
           fi
 
           feed_config="$app_path/Contents/Resources/app-update.yml"
-          if [[ ! -f "$feed_config" ]] || ! grep -qx 'owner: zlsbksdxl' "$feed_config" || ! grep -qx 'repo: Session2Agent' "$feed_config"; then
+          if [[ ! -f "$feed_config" ]] || ! grep -qx 'owner: zlsbksdxl' "$feed_config" || ! grep -qx 'repo: SessionFlow' "$feed_config"; then
             echo "The packaged GitHub update feed is missing or incorrect." >&2
             exit 1
           fi
@@ -167,10 +167,10 @@ jobs:
           set -euo pipefail
           cd outputs/release
           assets=(
-            "looperators-${RELEASE_VERSION}-mac-arm64.dmg"
-            "looperators-${RELEASE_VERSION}-mac-arm64.zip"
-            "looperators-${RELEASE_VERSION}-mac-arm64.dmg.blockmap"
-            "looperators-${RELEASE_VERSION}-mac-arm64.zip.blockmap"
+            "SessionFlow-${RELEASE_VERSION}-mac-arm64.dmg"
+            "SessionFlow-${RELEASE_VERSION}-mac-arm64.zip"
+            "SessionFlow-${RELEASE_VERSION}-mac-arm64.dmg.blockmap"
+            "SessionFlow-${RELEASE_VERSION}-mac-arm64.zip.blockmap"
             "latest-mac.yml"
           )
           for asset in "${assets[@]}"; do
@@ -180,7 +180,7 @@ jobs:
             fi
           done
           grep -Fxq "version: ${RELEASE_VERSION}" latest-mac.yml
-          grep -Fq "url: looperators-${RELEASE_VERSION}-mac-arm64.zip" latest-mac.yml
+          grep -Fq "url: SessionFlow-${RELEASE_VERSION}-mac-arm64.zip" latest-mac.yml
           shasum -a 256 "${assets[@]}" > SHA256SUMS
           shasum -a 256 -c SHA256SUMS
 
@@ -188,7 +188,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          GH_REPO: zlsbksdxl/Session2Agent
+          GH_REPO: zlsbksdxl/SessionFlow
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
           SIGNED_RELEASE: ${{ inputs.signed }}
@@ -201,18 +201,18 @@ jobs:
             printf '%s\n\n' '**Apple Silicon (arm64). Ad-hoc signed; no Developer ID signing or Apple notarization.**' > "$notes"
             printf '%s\n\n' 'macOS Gatekeeper may block the first launch of this unnotarized build.' >> "$notes"
           fi
-          printf '%s\n' 'Download the DMG to install looperators, or use the ZIP. SHA256SUMS covers both archives, their update blockmaps, and latest-mac.yml.' >> "$notes"
+          printf '%s\n' 'Download the DMG to install SessionFlow, or use the ZIP. SHA256SUMS covers both archives, their update blockmaps, and latest-mac.yml.' >> "$notes"
           assets=(
-            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.dmg"
-            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.zip"
-            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.dmg.blockmap"
-            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.zip.blockmap"
+            "outputs/release/SessionFlow-${RELEASE_VERSION}-mac-arm64.dmg"
+            "outputs/release/SessionFlow-${RELEASE_VERSION}-mac-arm64.zip"
+            "outputs/release/SessionFlow-${RELEASE_VERSION}-mac-arm64.dmg.blockmap"
+            "outputs/release/SessionFlow-${RELEASE_VERSION}-mac-arm64.zip.blockmap"
             "outputs/release/latest-mac.yml"
             "outputs/release/SHA256SUMS"
           )
           # gh refuses to replace an existing release, including a local draft.
           gh release create "$RELEASE_TAG" "${assets[@]}" \
-            --target "$GITHUB_SHA" --title "looperators $RELEASE_VERSION" \
+            --target "$GITHUB_SHA" --title "SessionFlow $RELEASE_VERSION" \
             --notes-file "$notes" --draft
           gh release view "$RELEASE_TAG" --json assets > "$RUNNER_TEMP/looperators-release-assets.json"
           node --input-type=module - "$RUNNER_TEMP/looperators-release-assets.json" "${assets[@]}" <<'NODE'

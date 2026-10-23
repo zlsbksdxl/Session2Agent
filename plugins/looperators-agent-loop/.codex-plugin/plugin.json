@@ -1,15 +1,15 @@
 {
   "name": "looperators-agent-loop",
   "version": "0.3.2+codex.20260803073424",
-  "description": "Task-scoped Agent Loop governance for looperators on Codex.",
+  "description": "Task-scoped Agent Loop governance for SessionFlow on Codex.",
   "author": {
     "name": "looperators"
   },
   "interface": {
-    "displayName": "looperators Agent Loop",
+    "displayName": "SessionFlow Agent Loop",
     "shortDescription": "Govern a bounded native Codex agent loop.",
-    "longDescription": "looperators adds a cooperative typed implementer-reviewer loop and an authenticated localhost live review surface without default Hooks.",
-    "developerName": "looperators",
+    "longDescription": "SessionFlow adds a cooperative typed implementer-reviewer loop and an authenticated localhost live review surface without default Hooks.",
+    "developerName": "SessionFlow",
     "category": "Productivity",
     "capabilities": [
       "Task-scoped Agent Loop state",
@@ -18,7 +18,7 @@
       "Verified graph snapshots",
       "Protected localhost live review"
     ],
-    "defaultPrompt": "Use looperators to preview a bounded review-until-clean loop."
+    "defaultPrompt": "Use SessionFlow to preview a bounded review-until-clean loop."
   },
   "mcpServers": "./.mcp.json"
 }

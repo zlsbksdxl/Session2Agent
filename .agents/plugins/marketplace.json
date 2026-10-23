@@ -1,7 +1,7 @@
 {
   "name": "looperators-p0",
   "interface": {
-    "displayName": "Looperators P0"
+    "displayName": "SessionFlow"
   },
   "plugins": [
     {

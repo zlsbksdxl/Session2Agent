@@ -1,6 +1,6 @@
 # Agent Notes
 
-Branding boundary: the customer-facing product name is `looperators`. `Orrery` / `orrery`
+Branding boundary: the customer-facing product name is `SessionFlow`. `Orrery` / `orrery`
 remains the internal codename and technical namespace; do not rename code symbols, IPC/MCP
 names, environment variables, storage paths, CLI files, or historical records solely for rebranding.
 
@@ -141,15 +141,15 @@ setup or the following runtime environment variables:
 
 Grok Build requires an ACP-capable local CLI and launches `grok agent stdio`;
 the integration baseline was verified with Grok `0.2.93`. Authenticate with
-`grok login` or provide `XAI_API_KEY` to the looperators runtime process.
-looperators reuses provider-managed authentication; it does not read, store, or
+`grok login` or provide `XAI_API_KEY` to the SessionFlow runtime process.
+SessionFlow reuses provider-managed authentication; it does not read, store, or
 refresh Grok OAuth/API credentials. The readiness probe performs a real ACP
 initialize/authenticate/session setup and therefore creates an upstream Grok
 session because the current ACP exposes no verified session deletion method.
 
 Provider setup accepts only non-sensitive `KEY=value` environment overrides.
 Credential-like names such as `TOKEN`, `KEY`, `SECRET`, `PASSWORD`, and
-`CREDENTIAL` are rejected; credentials must be supplied to the looperators
+`CREDENTIAL` are rejected; credentials must be supplied to the SessionFlow
 process. Grok may still load native MCP servers from `~/.grok`; the runtime
 injects and cleans up its per-turn graph membrane but does not isolate that user
 configuration.

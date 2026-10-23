@@ -314,7 +314,7 @@ input: JsonRecord = {},
         id: 'runtime',
         label: 'Runtime',
         status: 'ok',
-        message: 'looperators runtime is connected.',
+        message: 'SessionFlow runtime is connected.',
       },
       {
         id: 'provider-instance',
@@ -438,10 +438,10 @@ input: JsonRecord = {},
         status: 'unknown',
         message:
           providerKind === 'codex'
-            ? 'The looperators membrane will be mounted when a Codex thread starts.'
+            ? 'The SessionFlow membrane will be mounted when a Codex thread starts.'
             : providerKind === 'grok'
-              ? 'The looperators membrane will be injected when a Grok ACP session starts.'
-              : 'The looperators membrane will be mounted when a Claude session starts.',
+              ? 'The SessionFlow membrane will be injected when a Grok ACP session starts.'
+              : 'The SessionFlow membrane will be mounted when a Claude session starts.',
       },
     ],
   }

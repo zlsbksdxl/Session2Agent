@@ -204,7 +204,7 @@ const providerSetupHintCatalog: Record<ProviderKind, string[]> = {
   grok: [
     'Confirm the Grok CLI is installed and authenticated.',
     'Check that `grok agent stdio` can access this workspace path.',
-    'looperators reuses the local Grok CLI login or XAI_API_KEY; it does not store credentials.',
+    'SessionFlow reuses the local Grok CLI login or XAI_API_KEY; it does not store credentials.',
   ],
 };
 

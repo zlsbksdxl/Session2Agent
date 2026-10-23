@@ -17,7 +17,7 @@ export function AppUpdateNotice() {
         <div className="flex items-start gap-2">
           <Download className="mt-0.5 size-3.5 shrink-0 text-term-cyan" />
           <div className="min-w-0 flex-1">
-            <div className="text-[11.5px] font-medium text-term-name">looperators {state.availableVersion} is available</div>
+            <div className="text-[11.5px] font-medium text-term-name">SessionFlow {state.availableVersion} is available</div>
             <div className="mt-0.5 text-[10.5px] leading-4 text-term-dim">Download the signed macOS update from GitHub.</div>
           </div>
           <button

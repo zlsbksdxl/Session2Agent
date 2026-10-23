@@ -27,7 +27,7 @@ const document = `<!doctype html>
       content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'"
     />
     <link rel="icon" href="data:," />
-    <title>looperators Agent Graph production embed</title>
+    <title>SessionFlow Agent Graph production embed</title>
     <style>
       :root { color-scheme: light dark; }
       body { margin: 0; padding: 16px; background: #f8fafc; }

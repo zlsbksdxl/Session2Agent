@@ -1,7 +1,7 @@
 {
   "name": "orrery",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "workspaces": [
     "packages/*"
   ],
@@ -53,8 +53,8 @@
   },
   "build": {
     "appId": "com.observedobserver.looperators",
-    "productName": "looperators",
-    "artifactName": "looperators-${version}-mac-${arch}.${ext}",
+    "productName": "SessionFlow",
+    "artifactName": "SessionFlow-${version}-mac-${arch}.${ext}",
     "asar": true,
     "directories": {
       "output": "outputs/release",
@@ -95,7 +95,7 @@
       {
         "provider": "github",
         "owner": "zlsbksdxl",
-        "repo": "Session2Agent",
+        "repo": "SessionFlow",
         "releaseType": "release"
       }
     ]

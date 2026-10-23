@@ -1,20 +1,23 @@
-# Releasing looperators for macOS arm64
+# Releasing SessionFlow for macOS arm64
 
-This repository publishes to [zlsbksdxl/Session2Agent Releases](https://github.com/zlsbksdxl/Session2Agent/releases).
-The product name remains `looperators`, and the app identifier remains
-`com.observedobserver.looperators`. Version `0.2.0` is the first release from
-this independent repository. The packaged update feed must use owner
-`zlsbksdxl` and repository `Session2Agent`.
+This repository publishes to [zlsbksdxl/SessionFlow Releases](https://github.com/zlsbksdxl/SessionFlow/releases).
+The public product name is `SessionFlow`. The internal app identifier
+`com.observedobserver.looperators`, existing Orrery/orrery namespaces, and
+storage paths are preserved for compatibility with saved sessions and settings.
+Version `0.2.0` is this repository's initial release under the previous brand;
+`0.2.1` is the first SessionFlow release. The higher version lets installed
+`0.2.0` builds discover the branded update. The packaged update feed must use
+owner `zlsbksdxl` and repository `SessionFlow`.
 
 All installer output goes to `outputs/release/`. Every release includes:
 
-- `looperators-<version>-mac-arm64.dmg`
-- `looperators-<version>-mac-arm64.zip`
+- `SessionFlow-<version>-mac-arm64.dmg`
+- `SessionFlow-<version>-mac-arm64.zip`
 - the matching `.dmg.blockmap` and `.zip.blockmap`
 - `latest-mac.yml`
 - `SHA256SUMS`, covering the five files above
 
-## First release without Apple credentials
+## Ad-hoc release without Apple credentials
 
 Use the explicit ad-hoc build on an Apple Silicon Mac with Node.js 24:
 
@@ -35,7 +38,7 @@ Developer ID signed.
 ### Installing the first macOS build
 
 The download supports Apple Silicon (arm64) and macOS 12 or later. Open the
-DMG and drag `looperators.app` into Applications; the ZIP is an alternative.
+DMG and drag `SessionFlow.app` into Applications; the ZIP is an alternative.
 For this unnotarized build, macOS may show a developer-verification warning.
 Review [Apple's official instructions](https://support.apple.com/102445) if
 you choose to allow this application in System Settings > Privacy & Security.
@@ -50,8 +53,8 @@ manifest from inside the output directory:
 
 ```sh
 cd outputs/release
-shasum -a 256 looperators-0.2.0-mac-arm64.dmg looperators-0.2.0-mac-arm64.zip \
-  looperators-0.2.0-mac-arm64.dmg.blockmap looperators-0.2.0-mac-arm64.zip.blockmap \
+shasum -a 256 SessionFlow-0.2.1-mac-arm64.dmg SessionFlow-0.2.1-mac-arm64.zip \
+  SessionFlow-0.2.1-mac-arm64.dmg.blockmap SessionFlow-0.2.1-mac-arm64.zip.blockmap \
   latest-mac.yml > SHA256SUMS
 shasum -a 256 -c SHA256SUMS
 ```
@@ -59,13 +62,24 @@ shasum -a 256 -c SHA256SUMS
 When publishing locally, create a draft for the exact verified commit, upload
 all six files, read back the assets and release notes, then publish the draft.
 Keep the public note: **Ad-hoc signed; no Developer ID signing or Apple
-notarization.** Use a stable version tag such as `v0.2.0`.
+notarization.** Use a stable version tag such as `v0.2.1`.
+
+### Versioned branding transition
+
+Publish the SessionFlow build as a new `v0.2.1` release with the display title
+exactly **SessionFlow 0.2.1**. Keep the public `v0.2.0` tag and original assets
+as historical release data; do not move or force-push that tag, or replace its
+assets. Its display title is **SessionFlow 0.2.0**. Architecture and platform
+information belongs in release notes and filenames, without a title suffix.
+The workflow below creates new releases and refuses to overwrite an existing
+release. Internal app identifiers and storage paths remain unchanged across
+the branding transition to preserve saved sessions and settings.
 
 ## Manual GitHub Actions release
 
-The `Release macOS arm64` workflow uses **workflow_dispatch only**. Creating a
-local release or pushing its tag does not start a second publisher. Choose
-either local publishing or the workflow for a version.
+The `Release SessionFlow macOS arm64` workflow uses **workflow_dispatch only**.
+Creating a local release or pushing its tag does not start a second publisher.
+Choose either local publishing or the workflow for a version.
 
 In the repository's Actions tab, choose the intended commit/ref, enter the
 stable version, and leave **signed** unchecked for the explicit ad-hoc,

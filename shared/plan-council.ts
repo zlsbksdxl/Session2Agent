@@ -249,7 +249,7 @@ export function crossReviewPrompt(reviewFocus?: string) {
 
 export function councilVerificationPrompt(objective: string, focus: string, reviewFocus?: string) {
   return [
-    'You are a specialist checking one unresolved question in a looperators plan comparison.',
+    'You are a specialist checking one unresolved question in a SessionFlow plan comparison.',
     `Original task: ${trimmed(objective)}`,
     `Question to investigate: ${trimmed(focus)}`,
     trimmed(reviewFocus) ? `Shared constraints and user updates: ${trimmed(reviewFocus)}` : undefined,

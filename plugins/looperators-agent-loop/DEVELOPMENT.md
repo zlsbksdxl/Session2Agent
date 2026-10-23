@@ -1,4 +1,4 @@
-# Agent Loop plugin development
+# SessionFlow Agent Loop plugin development
 
 ## Control architecture
 

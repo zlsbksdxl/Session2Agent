@@ -71,7 +71,7 @@ export function NativeSessionImportDialog({
       typeof runtimeApi.readNativeSession !== 'function' ||
       typeof runtimeApi.importNativeSession !== 'function'
     ) {
-      setListError('Restart S2A to enable chat import, then open Import chat again.');
+      setListError('Restart SessionFlow to enable chat import, then open Import chat again.');
       setListLoading(false);
       return;
     }
@@ -192,7 +192,7 @@ export function NativeSessionImportDialog({
             <div className="min-w-0 flex-1">
               <Dialog.Title className="text-base font-semibold">Import an existing chat</Dialog.Title>
               <Dialog.Description className="mt-1 text-xs leading-5 text-muted-foreground">
-                Choose a Codex or Claude Code chat to continue in S2A. Importing adds its history and a node to the graph.
+                Choose a Codex or Claude Code chat to continue in SessionFlow. Importing adds its history and a node to the graph.
               </Dialog.Description>
             </div>
             <Button variant="ghost" size="icon-sm" aria-label="Close import chat" disabled={importing} onClick={onClose}>
@@ -291,7 +291,7 @@ export function NativeSessionImportDialog({
                     <span className="flex items-start gap-2">
                       <span className="line-clamp-2 min-w-0 flex-1 text-sm font-medium">{session.title || 'Untitled chat'}</span>
                       {session.importedSessionId ? (
-                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">In S2A</span>
+                        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">In SessionFlow</span>
                       ) : null}
                     </span>
                     <span className="mt-1 block truncate font-mono text-[10.5px] text-muted-foreground" title={session.cwd}>
@@ -421,7 +421,7 @@ export function NativeSessionImportDialog({
                         onClick={() => void importChat()}
                       >
                         {importing ? <LoaderCircle className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-                        {importing ? 'Importing…' : details.session.importedSessionId ? 'Open in S2A' : 'Import chat'}
+                        {importing ? 'Importing…' : details.session.importedSessionId ? 'Open in SessionFlow' : 'Import chat'}
                       </Button>
                     </div>
                   </footer>

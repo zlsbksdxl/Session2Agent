@@ -74,7 +74,7 @@ async function withClient<T>(
   }
   try {
     await request('initialize', {
-      clientInfo: { name: 'orrery', title: 'S2A', version: '0.0.0' },
+      clientInfo: { name: 'orrery', title: 'SessionFlow', version: '0.0.0' },
       capabilities: { experimentalApi: true },
     })
     client.notify('initialized')

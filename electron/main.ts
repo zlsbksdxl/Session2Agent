@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { RuntimeSessionManager } from './runtime/sessionManager.js'
@@ -10,6 +11,11 @@ import type { AppUpdateState } from '../shared/app-update.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const devServerUrl = process.env.VITE_DEV_SERVER_URL
 const appIconPath = path.join(app.getAppPath(), app.isPackaged ? 'dist' : 'public', 'app-icon.png')
+// Changing the display name must not relocate existing chats or appearance data.
+const existingUserDataPath = app.getPath('userData')
+fs.mkdirSync(existingUserDataPath, { recursive: true })
+app.setName('SessionFlow')
+app.setPath('userData', existingUserDataPath)
 let runtime: RuntimeSessionManager | undefined
 let updates: AppUpdateController | undefined
 let quitFlushStarted = false
@@ -36,7 +42,7 @@ function createMainWindow() {
     minWidth: 1024,
     minHeight: 720,
     icon: appIconPath,
-    title: 'looperators',
+    title: 'SessionFlow',
     backgroundColor: '#111111',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
@@ -285,7 +291,7 @@ app.whenReady().then(async () => {
   // guard) is an unhandled rejection: the process exits with no window and no
   // message. Surface it, then quit.
   const message = error instanceof Error ? error.message : String(error)
-  dialog.showErrorBox('looperators failed to start', message)
+  dialog.showErrorBox('SessionFlow failed to start', message)
   app.quit()
 })
 

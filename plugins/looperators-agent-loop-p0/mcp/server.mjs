@@ -15,7 +15,7 @@ const widgetHtml = String.raw`<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>looperators Agent Loop MCP App</title>
+    <title>SessionFlow Agent Loop MCP App</title>
     <style>
       :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
       body { margin: 0; padding: 16px; background: #0b1020; color: #edf1ff; }
@@ -30,7 +30,7 @@ const widgetHtml = String.raw`<!doctype html>
     </style>
   </head>
   <body>
-    <div class="top"><h1>looperators Agent Loop</h1><span class="badge">MCP App P0</span></div>
+    <div class="top"><h1>SessionFlow Agent Loop</h1><span class="badge">MCP App P0</span></div>
     <div id="graph"><div class="node">Root<small>waiting for structuredContent</small></div></div>
     <button id="ping">Call component tool</button><span id="status">initializing…</span>
     <script type="module">
@@ -155,7 +155,7 @@ function toolsList() {
   return [
     toolDescriptor(
       "loop_snapshot",
-      "Return the normalized looperators Agent Loop graph as structured content.",
+      "Return the normalized SessionFlow Agent Loop graph as structured content.",
       { type: "object", properties: {}, additionalProperties: false },
       outputSchema,
     ),
@@ -208,8 +208,8 @@ async function dispatch(message) {
         resources: [
           {
             uri: RESOURCE_URI,
-            name: "looperators Agent Loop P0",
-            title: "looperators Agent Loop P0",
+            name: "SessionFlow Agent Loop P0",
+            title: "SessionFlow Agent Loop P0",
             description: "Minimal MCP App graph for the compatibility probe.",
             mimeType: MIME_TYPE,
           },
@@ -238,7 +238,7 @@ async function dispatch(message) {
           content: [
             {
               type: "text",
-              text: "looperators Agent Loop graph is available in structuredContent.",
+              text: "SessionFlow Agent Loop graph is available in structuredContent.",
             },
           ],
           structuredContent,

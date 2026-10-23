@@ -1,20 +1,20 @@
 <div align="center">
 
-# looperators
+# SessionFlow
 
 [English](./README.md) | [中文](./README.zh-CN.md) | **Español**
 
 ### *Design the loop, not every prompt.*
 
-**looperators pone tus agentes de código con IA sobre un canvas<br/>y los conecta en loops que corren solos.**
+**SessionFlow pone tus agentes de código con IA sobre un canvas<br/>y los conecta en loops que corren solos.**
 
-[![Release](https://img.shields.io/github/v/release/zlsbksdxl/Session2Agent?color=0A84FF&label=release)](https://github.com/zlsbksdxl/Session2Agent/releases/latest)
-[![License](https://img.shields.io/github/license/zlsbksdxl/Session2Agent?color=8A2BE2)](./LICENSE)
+[![Release](https://img.shields.io/github/v/release/zlsbksdxl/SessionFlow?color=0A84FF&label=release)](https://github.com/zlsbksdxl/SessionFlow/releases/latest)
+[![License](https://img.shields.io/github/license/zlsbksdxl/SessionFlow?color=8A2BE2)](./LICENSE)
 ![Platform](https://img.shields.io/badge/platform-macOS%20(Apple%20Silicon)-111111?logo=apple)
 ![Agents](https://img.shields.io/badge/agents-Claude%20Code%20·%20Codex%20·%20Grok%20Build-2ea44f)
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 
-[![Descargar para macOS](https://img.shields.io/badge/⬇_Descargar_para_macOS-Apple_Silicon-0A84FF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/zlsbksdxl/Session2Agent/releases/latest)
+[![Descargar para macOS](https://img.shields.io/badge/⬇_Descargar_para_macOS-Apple_Silicon-0A84FF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/zlsbksdxl/SessionFlow/releases/latest)
 [![Primeros pasos](https://img.shields.io/badge/Primeros_pasos-3_pasos-30363D?style=for-the-badge)](#primeros-pasos)
 
 </div>
@@ -29,7 +29,7 @@ conviertes en un middleware de copiar y pegar.
 
 Ese papel de middleware son en realidad tres trabajos: mover contexto entre
 Agents, disparar al Agent correcto en el momento correcto y decidir cuándo
-termina el loop. looperators le entrega los tres al grafo. Los Agents se
+termina el loop. SessionFlow le entrega los tres al grafo. Los Agents se
 colocan sobre un canvas, conectados por aristas—y las aristas no son un diagrama: se ejecutan.
 Cuando un Agent termina, su salida viaja por la arista hasta el siguiente; la
 conclusión del de abajo vuelve río arriba y despierta al Agent original para
@@ -37,13 +37,13 @@ que siga. Quién dispara a quién, qué contexto viaja y cuándo parar se define
 en la arista. Dejas de hacer de mensajero; solo defines una vez las relaciones
 y la condición de parada.
 
-Y ese grafo no se monta a mano—**looperators no es una herramienta low-code.**
+Y ese grafo no se monta a mano—**SessionFlow no es una herramienta low-code.**
 Habla con tus Agents como siempre; cuando en la conversación toma forma un
 loop, el grafo correspondiente aparece en el canvas automáticamente, listo
 para editar. Quien quiera diseñar loops directamente también puede hacerlo en
 conversación normal—sin arrastrar cajas ni cables.
 
-<img width="3202" height="1518" alt="looperators-2" src="https://github.com/user-attachments/assets/cf02610e-0c44-4a1b-91cf-cb23a1a9d2b8" />
+<img width="3202" height="1518" alt="SessionFlow-2" src="https://github.com/user-attachments/assets/cf02610e-0c44-4a1b-91cf-cb23a1a9d2b8" />
 
 Un patrón favorito: lanza el mismo problema a varios modelos a la vez—Codex,
 Claude Code y Grok Build redactan cada uno una solución, se leen y se desafían
@@ -67,7 +67,7 @@ control.
 ## Los Agents no deberían ser islas
 
 La mayoría de las herramientas de code agents trata cada sesión como una isla,
-contigo como ferry entre ellas. En looperators, las sesiones viven en
+contigo como ferry entre ellas. En SessionFlow, las sesiones viven en
 relaciones: pueden despertarse unas a otras, intercambiar contexto, revisarse
 mutuamente, devolver trabajo río arriba y continuar hasta que se cumpla una
 condición de parada real.
@@ -81,14 +81,14 @@ Dos preguntas dan forma al producto:
 ## No es otro workflow builder
 
 Las herramientas de workflow tradicionales te piden montar el pipeline a mano
-antes de poder empezar. looperators parte del resultado.
+antes de poder empezar. SessionFlow parte del resultado.
 
 Elige un loop listo para usar o descríbele el objetivo a un Master Agent. El
 sistema puede proponer los participantes, las relaciones, los permisos y las
 condiciones de parada. Revisas la propuesta, la apruebas y usas el grafo para
 entender o ajustar el workflow—no para dibujar cada paso desde cero.
 
-| Workflow builder tradicional               | looperators                                                              |
+| Workflow builder tradicional               | SessionFlow                                                              |
 | ------------------------------------------ | ------------------------------------------------------------------------ |
 | Parte de un canvas vacío                   | Parte de un objetivo o de un loop listo para usar                        |
 | Los nodos son actions sin estado           | Los nodos son sesiones de Agent de larga vida                            |
@@ -97,13 +97,13 @@ entender o ajustar el workflow—no para dibujar cada paso desde cero.
 | El grafo describe un pipeline planificado  | El grafo sigue vivo mientras los Agents trabajan                         |
 
 A diferencia de los sistemas que llaman a un modelo como un paso desechable,
-cada nodo de looperators sigue siendo una sesión real. Ábrela como un chat
+cada nodo de SessionFlow sigue siendo una sesión real. Ábrela como un chat
 normal, inspecciona sus mensajes y su actividad de herramientas, interviene,
 congela activaciones futuras o reanúdala (resume) con su historial intacto.
 
 ## El grafo define el loop; los prompts definen el trabajo
 
-looperators no necesita una action integrada para cada tarea que un Agent pueda
+SessionFlow no necesita una action integrada para cada tarea que un Agent pueda
 realizar.
 
 Code Review, testing, investigación, migraciones, triaje de issues, resúmenes y
@@ -118,7 +118,7 @@ semántica de control reutilizable a su alrededor:
 - qué relaciones siguen activas para eventos futuros.
 
 "Review until clean" es, por tanto, un loop útil, no una frontera de lo que
-looperators puede hacer. Cambia los prompts y la misma forma se convierte en
+SessionFlow puede hacer. Cambia los prompts y la misma forma se convierte en
 una auditoría de seguridad, un ciclo test-and-fix, un verificador de
 migraciones o un workflow de validación.
 
@@ -130,7 +130,7 @@ Un Agent implementa un cambio. Otro lo revisa y devuelve los blocking issues.
 Los hallazgos reactivan la sesión original, que repara el trabajo y lo envía a
 otra pasada.
 
-<img width="3840" height="1986" alt="looperators-review" src="https://github.com/user-attachments/assets/3af4c02e-aa7b-435c-b2e9-98997bae88d8" />
+<img width="3840" height="1986" alt="SessionFlow-review" src="https://github.com/user-attachments/assets/3af4c02e-aa7b-435c-b2e9-98997bae88d8" />
 
 El loop solo se detiene cuando el Reviewer reporta clean o se alcanza una
 barrera configurada. Cada vuelta, cada verdict y cada camino de retorno queda
@@ -141,7 +141,7 @@ visible.
 Ejecuta varios Agents o modelos como planificadores independientes, deja que se
 lean y se desafíen entre sí, y sintetiza después el resultado más sólido.
 
-<img width="3140" height="1532" alt="looperators-discuss2" src="https://github.com/user-attachments/assets/a1bb358a-0e07-486e-8d9b-350aa57ec29a" />
+<img width="3140" height="1532" alt="SessionFlow-discuss2" src="https://github.com/user-attachments/assets/a1bb358a-0e07-486e-8d9b-350aa57ec29a" />
 
 El **Plan Council** integrado conserva las propuestas, los desacuerdos, las
 revisiones cruzadas y la ruta hasta la decisión final—no solo la respuesta
@@ -227,7 +227,7 @@ el evento exacto que lo explica.
 
 Los agent loops fiables necesitan ambas cosas.
 
-looperators maneja las partes mecánicas de forma determinista: coincidencia de
+SessionFlow maneja las partes mecánicas de forma determinista: coincidencia de
 eventos, entrega de contexto, activación, joins, reglas de parada,
 comportamiento de concurrencia, persistencia, recuperación y límites de
 recursos. Si llegan eventos nuevos mientras un Agent está ocupado, se pueden
@@ -243,7 +243,7 @@ persona—que recuerde cómo enrutar cada turno.
 ## Hecho para dejarlo corriendo
 
 La autonomía solo es útil cuando sus límites son explícitos. Según el loop,
-looperators puede imponer:
+SessionFlow puede imponer:
 
 - máximos de vueltas, plazos, fan-out, concurrencia y número de sesiones;
 - gates de aprobación automáticos, del Master Agent o humanos;
@@ -259,14 +259,14 @@ bastante segura como para confiar en ella**.
 
 ## Primeros pasos
 
-looperators ofrece por ahora una build para macOS (Apple Silicon); en otras
+SessionFlow ofrece por ahora una build para macOS (Apple Silicon); en otras
 plataformas, ejecútalo desde el código fuente.
 
-1. **[Descarga la última release](https://github.com/zlsbksdxl/Session2Agent/releases/latest)**
-   y arrastra looperators a Applications.
+1. **[Descarga la última release](https://github.com/zlsbksdxl/SessionFlow/releases/latest)**
+   y arrastra `SessionFlow.app` a Applications.
 2. Instala y autentica al menos un code agent compatible—Claude Code, Codex o
    Grok Build.
-3. Abre looperators y empieza con **New Workflow** para un loop listo para
+3. Abre SessionFlow y empieza con **New Workflow** para un loop listo para
    usar, o abre un chat de Master para describir un objetivo más complejo. El
    chat y el grafo de Agents siguen disponibles durante toda la ejecución.
 
@@ -284,7 +284,7 @@ npm run dev
 
 ## Estado del proyecto
 
-looperators es una alpha temprana. Las interfaces, los contratos de
+SessionFlow es una alpha temprana. Las interfaces, los contratos de
 almacenamiento y los controles avanzados pueden evolucionar antes de una
 versión estable.
 

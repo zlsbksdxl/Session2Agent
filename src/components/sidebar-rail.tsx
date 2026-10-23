@@ -504,7 +504,7 @@ export function SidebarRail({
       </div>
       <header className={cn('app-region-drag flex shrink-0 items-center justify-between gap-3 px-4 py-3', isElectron && 'pt-9')}>
         <div className="min-w-0">
-          <h1 className="truncate text-sm font-semibold leading-tight">S2A</h1>
+          <h1 className="truncate text-sm font-semibold leading-tight">SessionFlow</h1>
         </div>
         <ChatSearchDialog
           query={sessionSearch}

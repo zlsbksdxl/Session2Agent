@@ -49,7 +49,7 @@ function semanticFallback(projection) {
     )
     .join("");
   return `<section id="looperators-agent-loop-fallback" class="looperators-agent-loop-fallback" role="status">
-  <h2>looperators Agent Loop</h2>
+  <h2>SessionFlow Agent Loop</h2>
   <p>Verified ${escapeHtml(projection.status)} snapshot, lap ${projection.currentLap}/${projection.lapCap}.</p>
   <ul>${nodes}</ul>
   <ul>${edges}</ul>
@@ -124,7 +124,7 @@ export function renderSidecarDocument(projection, options = {}) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>looperators Agent Loop live review</title>
+  <title>SessionFlow Agent Loop live review</title>
   <link rel="icon" href="data:,">
   <style>
     body {

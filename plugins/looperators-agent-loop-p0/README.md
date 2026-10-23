@@ -1,4 +1,4 @@
-# looperators Agent Loop P0 plugin
+# SessionFlow Agent Loop P0 plugin
 
 This is a compatibility probe, not a production orchestration runtime. It keeps
 four boundaries intentionally small:
@@ -11,7 +11,7 @@ four boundaries intentionally small:
   MCP App resource.
 - `scripts/sidecar-server.mjs` is a token-protected, loopback-only SSE fallback.
 
-No looperators Desktop runtime, provider adapter, workflow kernel, or transcript
+No SessionFlow Desktop runtime, provider adapter, workflow kernel, or transcript
 tailing is included.
 
 ## Local checks

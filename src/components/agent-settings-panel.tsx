@@ -275,7 +275,7 @@ export function AgentSettingsPanel({
           <div>
             <h2 className="text-xl font-semibold text-term-name">Agent providers</h2>
             <p className="mt-1 max-w-2xl text-sm leading-5 text-term-dim">
-              looperators reuses coding agents installed and authenticated on this computer. Profiles, readiness snapshots, and real chats share one resolved launch configuration.
+              SessionFlow reuses coding agents installed and authenticated on this computer. Profiles, readiness snapshots, and real chats share one resolved launch configuration.
             </p>
           </div>
           <Button

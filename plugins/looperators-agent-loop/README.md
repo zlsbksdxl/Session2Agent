@@ -1,4 +1,4 @@
-# looperators Agent Loop
+# SessionFlow Agent Loop
 
 This directory contains the lean Codex Plugin for one bounded
 `review-until-clean` loop inside a Codex task.
@@ -68,7 +68,8 @@ restart/recovery read can invalidate the dispatched token.
 ## Local data
 
 `LOOPERATORS_DATA_DIR` is an optional absolute override for isolated tests and
-advanced setups. Otherwise MCP uses the looperators-owned platform path:
+advanced setups. Otherwise MCP uses the SessionFlow platform path. Existing
+internal directory names are retained for compatibility:
 
 | Platform | Default |
 | --- | --- |
