@@ -1,28 +1,32 @@
 name: Release macOS arm64
 
+# Publishing locally or pushing a tag must not start a competing release build.
 on:
-  push:
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version, for example 0.2.0'
+        description: 'Stable release version, for example 0.2.0'
         required: true
+        default: '0.2.0'
         type: string
+      signed:
+        description: 'Use Developer ID signing and Apple notarization (requires all Apple credentials)'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-macos-arm64-${{ github.ref }}
+  group: release-macos-arm64
   cancel-in-progress: false
 
 jobs:
   release:
-    name: Build, sign, notarize, and publish
+    name: Build, verify, and publish macOS arm64
     runs-on: macos-15
-    timeout-minutes: 35
+    timeout-minutes: 60
 
     steps:
       - name: Check out repository
@@ -37,36 +41,40 @@ jobs:
           cache: npm
 
       - id: release
-        name: Resolve release version
+        name: Resolve release version and tag
         shell: bash
         env:
-          DISPATCH_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_VERSION_INPUT: ${{ inputs.version }}
         run: |
-          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            raw_version="$DISPATCH_VERSION"
-          else
-            raw_version="$GITHUB_REF_NAME"
-          fi
-
-          version="${raw_version#v}"
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release version must be stable SemVer (X.Y.Z), received: $raw_version" >&2
+          set -euo pipefail
+          version="${RELEASE_VERSION_INPUT#v}"
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Release version must be stable SemVer (X.Y.Z)." >&2
             exit 1
           fi
-
+          tag="v$version"
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            if [[ "$(git rev-parse "$tag^{commit}")" != "$GITHUB_SHA" ]]; then
+              echo "Existing $tag does not point to the selected workflow commit." >&2
+              exit 1
+            fi
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Set package version from release tag
-        run: npm version "${{ steps.release.outputs.version }}" --no-git-tag-version
+      - name: Set package version
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: npm version "$RELEASE_VERSION" --no-git-tag-version --allow-same-version
 
       - name: Run deterministic checks
         run: npm run test:ci
 
-      - name: Configure Apple signing and notarization
+      - name: Validate intentional Developer ID signing and notarization
+        if: ${{ inputs.signed }}
         shell: bash
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -74,94 +82,155 @@ jobs:
           APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          EXPECTED_APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
         run: |
-          for name in CSC_LINK CSC_KEY_PASSWORD APPLE_API_KEY_CONTENT APPLE_API_KEY_ID APPLE_API_ISSUER; do
+          set -euo pipefail
+          for name in CSC_LINK CSC_KEY_PASSWORD APPLE_API_KEY_CONTENT APPLE_API_KEY_ID APPLE_API_ISSUER EXPECTED_APPLE_TEAM_ID; do
             if [[ -z "${!name}" ]]; then
-              echo "Missing required release secret: $name" >&2
+              echo "Signed releases require $name; refusing an unsigned fallback." >&2
               exit 1
             fi
           done
+          if [[ ! "$EXPECTED_APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "The APPLE_TEAM_ID repository variable must be the certificate's 10-character Team ID." >&2
+            exit 1
+          fi
+          umask 077
+          printf '%s' "$APPLE_API_KEY_CONTENT" > "$RUNNER_TEMP/looperators-notarization.p8"
 
-          key_path="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY_ID}.p8"
-          printf '%s' "$APPLE_API_KEY_CONTENT" > "$key_path"
-          chmod 600 "$key_path"
-          echo "APPLE_API_KEY=$key_path" >> "$GITHUB_ENV"
-          echo "APPLE_API_KEY_ID=$APPLE_API_KEY_ID" >> "$GITHUB_ENV"
-          echo "APPLE_API_ISSUER=$APPLE_API_ISSUER" >> "$GITHUB_ENV"
-          echo "CSC_LINK=$CSC_LINK" >> "$GITHUB_ENV"
-          echo "CSC_KEY_PASSWORD=$CSC_KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build ad-hoc signed, unnotarized artifacts
+        if: ${{ !inputs.signed }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npm run dist:mac:adhoc
 
-      - name: Build signed macOS arm64 artifacts
-        run: npm run dist:mac
+      - name: Build Developer ID signed and notarized artifacts
+        if: ${{ inputs.signed }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'true'
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_API_KEY: ${{ runner.temp }}/looperators-notarization.p8
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: npm run dist:mac -- -c.forceCodeSigning=true -c.mac.type=distribution -c.mac.hardenedRuntime=true -c.mac.notarize=true
 
-      - name: Verify app signature, notarization, and updater assets
+      - name: Verify app identity, signature, architecture, and update feed
         shell: bash
         env:
+          SIGNED_RELEASE: ${{ inputs.signed }}
+          EXPECTED_APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
         run: |
-          app_path="$(find release -maxdepth 2 -type d -name 'looperators.app' -print -quit)"
-          if [[ -z "$app_path" ]]; then
+          set -euo pipefail
+          app_path="outputs/release/mac-arm64/looperators.app"
+          if [[ ! -d "$app_path" ]]; then
             echo "Packaged looperators.app was not found." >&2
             exit 1
           fi
-
           codesign --verify --deep --strict --verbose=2 "$app_path"
-          spctl --assess --type execute --verbose=2 "$app_path"
-          xcrun stapler validate "$app_path"
+          signature="$(codesign -dv --verbose=4 "$app_path" 2>&1)"
+          if [[ "$SIGNED_RELEASE" == "true" ]]; then
+            team_id="$(printf '%s\n' "$signature" | sed -n 's/^TeamIdentifier=//p')"
+            if [[ "$team_id" != "$EXPECTED_APPLE_TEAM_ID" ]] || ! grep -q '^Authority=Developer ID Application:' <<< "$signature"; then
+              echo "The app does not have the expected Developer ID signature." >&2
+              exit 1
+            fi
+            spctl --assess --type execute --verbose=2 "$app_path"
+            xcrun stapler validate "$app_path"
+          elif ! grep -q '^Signature=adhoc$' <<< "$signature"; then
+            echo "The explicitly unnotarized build must have an ad-hoc signature." >&2
+            exit 1
+          fi
 
-          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_path/Contents/Info.plist")"
-          team_id="$(codesign -dv --verbose=4 "$app_path" 2>&1 | sed -n 's/^TeamIdentifier=//p')"
-          architectures="$(lipo -archs "$app_path/Contents/MacOS/looperators")"
-          if [[ "$bundle_id" != "com.observedobserver.looperators" ]]; then
-            echo "Unexpected bundle identifier: $bundle_id" >&2
-            exit 1
-          fi
-          if [[ "$team_id" != "6RAXH4XM34" ]]; then
-            echo "Unexpected signing Team ID: $team_id" >&2
-            exit 1
-          fi
-          if [[ "$architectures" != "arm64" ]]; then
-            echo "Expected an arm64-only app, received: $architectures" >&2
+          plist="$app_path/Contents/Info.plist"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$plist")"
+          app_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")"
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$plist")"
+          architectures="$(lipo -archs "$app_path/Contents/MacOS/$executable")"
+          if [[ "$bundle_id" != "com.observedobserver.looperators" || "$app_version" != "$RELEASE_VERSION" || "$architectures" != "arm64" ]]; then
+            echo "Unexpected app identifier, version, or architecture." >&2
             exit 1
           fi
 
           feed_config="$app_path/Contents/Resources/app-update.yml"
-          if [[ ! -f "$feed_config" ]] || ! grep -q '^owner: ObservedObserver$' "$feed_config" || ! grep -q '^repo: looperators$' "$feed_config"; then
+          if [[ ! -f "$feed_config" ]] || ! grep -qx 'owner: zlsbksdxl' "$feed_config" || ! grep -qx 'repo: Session2Agent' "$feed_config"; then
             echo "The packaged GitHub update feed is missing or incorrect." >&2
             exit 1
           fi
 
-          required_assets=(
-            "release/looperators-${RELEASE_VERSION}-mac-arm64.dmg"
-            "release/looperators-${RELEASE_VERSION}-mac-arm64.zip"
-            "release/latest-mac.yml"
+      - name: Verify assets and generate SHA256SUMS
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd outputs/release
+          assets=(
+            "looperators-${RELEASE_VERSION}-mac-arm64.dmg"
+            "looperators-${RELEASE_VERSION}-mac-arm64.zip"
+            "looperators-${RELEASE_VERSION}-mac-arm64.dmg.blockmap"
+            "looperators-${RELEASE_VERSION}-mac-arm64.zip.blockmap"
+            "latest-mac.yml"
           )
-          for asset in "${required_assets[@]}"; do
-            if [[ ! -f "$asset" ]]; then
-              echo "Missing required release asset: $asset" >&2
+          for asset in "${assets[@]}"; do
+            if [[ ! -s "$asset" ]]; then
+              echo "Missing or empty release asset: $asset" >&2
               exit 1
             fi
           done
-
-          shopt -s nullglob
-          blockmaps=(release/*.blockmap)
-          if [[ ${#blockmaps[@]} -eq 0 ]]; then
-            echo "No differential-update blockmaps were generated." >&2
-            exit 1
-          fi
+          grep -Fxq "version: ${RELEASE_VERSION}" latest-mac.yml
+          grep -Fq "url: looperators-${RELEASE_VERSION}-mac-arm64.zip" latest-mac.yml
+          shasum -a 256 "${assets[@]}" > SHA256SUMS
+          shasum -a 256 -c SHA256SUMS
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.release.outputs.tag }}
-          target_commitish: ${{ github.sha }}
-          name: looperators ${{ steps.release.outputs.version }}
-          generate_release_notes: true
-          prerelease: false
-          make_latest: true
-          fail_on_unmatched_files: true
-          files: |
-            release/looperators-${{ steps.release.outputs.version }}-mac-arm64.dmg
-            release/looperators-${{ steps.release.outputs.version }}-mac-arm64.zip
-            release/*.blockmap
-            release/latest-mac.yml
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: zlsbksdxl/Session2Agent
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          SIGNED_RELEASE: ${{ inputs.signed }}
+        run: |
+          set -euo pipefail
+          notes="$RUNNER_TEMP/looperators-release-notes.md"
+          if [[ "$SIGNED_RELEASE" == "true" ]]; then
+            printf '%s\n\n' '**Apple Silicon (arm64). Developer ID signed and Apple notarized.**' > "$notes"
+          else
+            printf '%s\n\n' '**Apple Silicon (arm64). Ad-hoc signed; no Developer ID signing or Apple notarization.**' > "$notes"
+            printf '%s\n\n' 'macOS Gatekeeper may block the first launch of this unnotarized build.' >> "$notes"
+          fi
+          printf '%s\n' 'Download the DMG to install looperators, or use the ZIP. SHA256SUMS covers both archives, their update blockmaps, and latest-mac.yml.' >> "$notes"
+          assets=(
+            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.dmg"
+            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.zip"
+            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.dmg.blockmap"
+            "outputs/release/looperators-${RELEASE_VERSION}-mac-arm64.zip.blockmap"
+            "outputs/release/latest-mac.yml"
+            "outputs/release/SHA256SUMS"
+          )
+          # gh refuses to replace an existing release, including a local draft.
+          gh release create "$RELEASE_TAG" "${assets[@]}" \
+            --target "$GITHUB_SHA" --title "looperators $RELEASE_VERSION" \
+            --notes-file "$notes" --draft
+          gh release view "$RELEASE_TAG" --json assets > "$RUNNER_TEMP/looperators-release-assets.json"
+          node --input-type=module - "$RUNNER_TEMP/looperators-release-assets.json" "${assets[@]}" <<'NODE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const [metadata, ...files] = process.argv.slice(2);
+          const { assets } = JSON.parse(fs.readFileSync(metadata, 'utf8'));
+          assert.equal(assets.length, files.length, 'Unexpected uploaded asset count');
+          for (const file of files) {
+            const asset = assets.find(candidate => candidate.name === path.basename(file));
+            assert.ok(asset, `Missing uploaded asset: ${path.basename(file)}`);
+            assert.equal(asset.size, fs.statSync(file).size, `Uploaded size mismatch: ${asset.name}`);
+          }
+          NODE
+          gh release edit "$RELEASE_TAG" --draft=false --latest
+
+      - name: Remove temporary notarization key
+        if: ${{ always() && inputs.signed }}
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/looperators-notarization.p8"

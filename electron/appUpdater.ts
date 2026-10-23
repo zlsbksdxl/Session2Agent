@@ -18,7 +18,7 @@ const { autoUpdater } = electronUpdater;
 
 const STARTUP_CHECK_DELAY_MS = 15_000;
 const PERIODIC_CHECK_INTERVAL_MS = 4 * 60 * 60 * 1_000;
-const RELEASES_URL = 'https://github.com/ObservedObserver/looperators/releases/latest';
+const RELEASES_URL = 'https://github.com/zlsbksdxl/Session2Agent/releases/latest';
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);

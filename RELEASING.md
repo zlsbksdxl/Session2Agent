@@ -1,62 +1,121 @@
 # Releasing looperators for macOS arm64
 
-The first update-enabled release is a migration baseline. Users of `0.1.0`
-must install that baseline manually because `0.1.0` does not contain the
-update-checking runtime. Once the baseline is installed, packaged Apple Silicon
-builds check the public GitHub Releases feed automatically and show a download
-notice when a newer stable release is available.
+This repository publishes to [zlsbksdxl/Session2Agent Releases](https://github.com/zlsbksdxl/Session2Agent/releases).
+The product name remains `looperators`, and the app identifier remains
+`com.observedobserver.looperators`. Version `0.2.0` is the first release from
+this independent repository. The packaged update feed must use owner
+`zlsbksdxl` and repository `Session2Agent`.
 
-## One-time GitHub setup
+All installer output goes to `outputs/release/`. Every release includes:
 
-Configure these Actions secrets:
+- `looperators-<version>-mac-arm64.dmg`
+- `looperators-<version>-mac-arm64.zip`
+- the matching `.dmg.blockmap` and `.zip.blockmap`
+- `latest-mac.yml`
+- `SHA256SUMS`, covering the five files above
+
+## First release without Apple credentials
+
+Use the explicit ad-hoc build on an Apple Silicon Mac with Node.js 24:
+
+```sh
+npm ci
+npm run test:ci
+CSC_IDENTITY_AUTO_DISCOVERY=false npm run dist:mac:adhoc
+```
+
+The ad-hoc script sets `mac.identity=-`, disables hardened runtime for that
+build, and disables notarization. Setting `CSC_IDENTITY_AUTO_DISCOVERY=false`
+alone does not request an ad-hoc signature. These artifacts have an ad-hoc
+signature for code integrity, but have **no Developer ID signing or Apple
+notarization**. macOS Gatekeeper may block their first launch. Public release
+notes must state that limitation; do not describe this mode as notarized or as
+Developer ID signed.
+
+### Installing the first macOS build
+
+The download supports Apple Silicon (arm64) and macOS 12 or later. Open the
+DMG and drag `looperators.app` into Applications; the ZIP is an alternative.
+For this unnotarized build, macOS may show a developer-verification warning.
+Review [Apple's official instructions](https://support.apple.com/102445) if
+you choose to allow this application in System Settings > Privacy & Security.
+The selected Claude Code, Codex, or Grok CLI must still be installed and
+authenticated separately; the installer does not include provider credentials.
+
+Before publishing, verify the built app and both archives, including a local
+launch of the packaged app. Check the app version and arm64 architecture,
+`codesign --verify --deep --strict`, its ad-hoc signature, and the packaged
+`Contents/Resources/app-update.yml` owner/repository. Generate and verify the
+manifest from inside the output directory:
+
+```sh
+cd outputs/release
+shasum -a 256 looperators-0.2.0-mac-arm64.dmg looperators-0.2.0-mac-arm64.zip \
+  looperators-0.2.0-mac-arm64.dmg.blockmap looperators-0.2.0-mac-arm64.zip.blockmap \
+  latest-mac.yml > SHA256SUMS
+shasum -a 256 -c SHA256SUMS
+```
+
+When publishing locally, create a draft for the exact verified commit, upload
+all six files, read back the assets and release notes, then publish the draft.
+Keep the public note: **Ad-hoc signed; no Developer ID signing or Apple
+notarization.** Use a stable version tag such as `v0.2.0`.
+
+## Manual GitHub Actions release
+
+The `Release macOS arm64` workflow uses **workflow_dispatch only**. Creating a
+local release or pushing its tag does not start a second publisher. Choose
+either local publishing or the workflow for a version.
+
+In the repository's Actions tab, choose the intended commit/ref, enter the
+stable version, and leave **signed** unchecked for the explicit ad-hoc,
+unnotarized path. It needs no Apple secrets. The workflow runs deterministic
+checks, builds the app, verifies its identity/signature/architecture/update
+feed, checks all required assets, and publishes with the unnotarized notice.
+It uploads to a draft and verifies the six remote asset names and sizes before
+publishing that draft.
+Its `gh release create` command fails if that release already exists, including
+an existing draft; it does not replace a local publication. If the tag already
+exists, it must point to the selected workflow commit. Otherwise GitHub creates
+the version tag at that exact commit when publishing.
+
+## Optional Developer ID signed and notarized release
+
+Select **signed** only after configuring all five Actions secrets:
 
 - `CSC_LINK`: base64-encoded Developer ID Application `.p12`
-- `CSC_KEY_PASSWORD`: password used to export the `.p12`
+- `CSC_KEY_PASSWORD`: the `.p12` export password
 - `APPLE_API_KEY`: raw App Store Connect API `.p8` contents
-- `APPLE_API_KEY_ID`: App Store Connect API key ID
-- `APPLE_API_ISSUER`: App Store Connect issuer ID
+- `APPLE_API_KEY_ID`: the API key ID
+- `APPLE_API_ISSUER`: the issuer ID
 
-The signing certificate must remain the same Developer ID identity used for
-the existing app (`com.observedobserver.looperators`, Team ID `6RAXH4XM34`).
-The release workflow fails instead of publishing an unsigned, unnotarized,
-wrong-architecture, or incorrectly signed update when any signing credential
-or expected updater asset is missing.
+Also configure the repository variable `APPLE_TEAM_ID` with the certificate's
+10-character Team ID. This is your signing team; the workflow does not assume
+the upstream project's team. No Apple credentials are loaded for an explicit
+ad-hoc run.
 
-## Publish a release
+The signed path rejects missing credentials, requires code signing, uses the
+distribution certificate type and hardened runtime, and enables the installed
+electron-builder notarization integration. After building it requires a valid
+Developer ID signature from the configured team, a successful Gatekeeper
+assessment, and a valid stapled notarization ticket before publishing. A
+signing/notarization failure never falls back to an ad-hoc release.
 
-Use a stable SemVer tag:
-
-```sh
-git tag v0.2.0
-git push origin v0.2.0
-```
-
-The `Release macOS arm64` workflow then:
-
-1. injects the tag version into `package.json` and the packaged app;
-2. runs lint, build, and deterministic graph-core tests;
-3. builds arm64 DMG and ZIP artifacts;
-4. signs, notarizes, and staples the application;
-5. verifies `latest-mac.yml` and differential-update blockmaps;
-6. publishes all required files in one public GitHub Release.
-
-The workflow can also be started manually with a version from the Actions UI.
-Do not upload only the DMG and ZIP: update detection depends on
-`latest-mac.yml`, and future in-app downloads will depend on the blockmaps.
-
-## Local packaging check
-
-On an Apple Silicon Mac with a signing identity available in Keychain:
+For a local signed build, first configure `CSC_LINK`, `CSC_KEY_PASSWORD`,
+`APPLE_API_KEY` (an absolute path to the `.p8` file locally), `APPLE_API_KEY_ID`,
+and `APPLE_API_ISSUER` in the packaging environment, then run:
 
 ```sh
-npm run pack:mac
+CSC_IDENTITY_AUTO_DISCOVERY=true npm run dist:mac -- \
+  -c.forceCodeSigning=true -c.mac.type=distribution \
+  -c.mac.hardenedRuntime=true -c.mac.notarize=true
 ```
 
-For a full DMG/ZIP build:
+Apply the same Developer ID, Team ID, `spctl`, and `xcrun stapler validate`
+checks locally. A successful packaging command by itself is not proof of
+notarization. Keep signing credentials out of the repository and release
+assets.
 
-```sh
-npm run dist:mac
-```
-
-Local development builds intentionally report update checks as disabled. Test
-the real GitHub feed from an installed, signed production build.
+Development builds disable update checks. Test the configured feed from the
+packaged app; a first release can establish feed reachability, while a later
+higher version is needed to verify that an update is offered.

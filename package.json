@@ -48,6 +48,7 @@
     "preview": "vite preview",
     "start": "npm run build && electron .",
     "dist:mac": "npm run build && electron-builder --mac dmg zip --arm64 --publish never",
+    "dist:mac:adhoc": "npm run build && electron-builder --mac dmg zip --arm64 --publish never -c.mac.identity=- -c.mac.hardenedRuntime=false -c.mac.notarize=false",
     "pack:mac": "npm run build && electron-builder --mac dir --arm64 --publish never"
   },
   "build": {
@@ -56,7 +57,7 @@
     "artifactName": "looperators-${version}-mac-${arch}.${ext}",
     "asar": true,
     "directories": {
-      "output": "release",
+      "output": "outputs/release",
       "buildResources": "build"
     },
     "files": [
@@ -93,8 +94,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "ObservedObserver",
-        "repo": "looperators",
+        "owner": "zlsbksdxl",
+        "repo": "Session2Agent",
         "releaseType": "release"
       }
     ]

