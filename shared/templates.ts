@@ -168,8 +168,8 @@ export const builtinTemplates: TemplateDescriptor[] = [
     handsOff: 'One-shot context transfer',
     builtin: true,
     slots: [
-      sessionSlot('source', 'From Agent'),
-      sessionSlot('target', 'To Agent'),
+      sessionSlot('source', 'From agent'),
+      sessionSlot('target', 'To agent'),
       {
         key: 'note',
         label: 'Handoff note',
@@ -186,8 +186,8 @@ export const builtinTemplates: TemplateDescriptor[] = [
     handsOff: 'Deliver-only attention, no activation',
     builtin: true,
     slots: [
-      sessionSlot('source', 'Watched Agent'),
-      sessionSlot('watcher', 'Summary Agent'),
+      sessionSlot('source', 'Watched agent'),
+      sessionSlot('watcher', 'Summary agent'),
       {
         key: 'note',
         label: 'Delivery note',
@@ -204,8 +204,8 @@ export const builtinTemplates: TemplateDescriptor[] = [
     handsOff: 'The review loop stops when the reviewer reports clean',
     builtin: true,
     slots: [
-      sessionSlot('coder', 'Coder Agent'),
-      sessionSlot('reviewer', 'Reviewer Agent', {
+      sessionSlot('coder', 'Coder agent'),
+      sessionSlot('reviewer', 'Reviewer agent', {
         required: false,
         help: 'Leave empty to create a Reviewer Agent next to the Coder',
       }),
@@ -227,7 +227,7 @@ export const builtinTemplates: TemplateDescriptor[] = [
     handsOff: 'The stopping condition',
     builtin: true,
     slots: [
-      sessionSlot('worker', 'Worker Agent'),
+      sessionSlot('worker', 'Worker agent'),
       {
         key: 'goal',
         label: 'The goal (one sentence defining done)',
@@ -278,7 +278,7 @@ export const builtinTemplates: TemplateDescriptor[] = [
         required: true,
         help: 'Register sources in the Sources panel first',
       },
-      sessionSlot('target', 'Responder Agent'),
+      sessionSlot('target', 'Responder agent'),
       {
         key: 'instruction',
         label: 'What to do when the event fires',

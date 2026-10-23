@@ -62,7 +62,7 @@ export function RelationshipInspectorPanel({
       <header className="flex items-center gap-2 border-b border-border px-3 py-2.5">
         <Link2 className="size-3.5 text-accent-ink" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em]">Relationship</h2>
+          <h2 className="text-[11px] font-semibold tracking-[0.12em]">Relationship</h2>
           <p className="truncate text-[10px] text-muted-foreground">{subscription?.label ?? history?.label ?? data.label}</p>
         </div>
         <Button variant="ghost" size="icon" aria-label="Close Relationship inspector" onClick={onClose}>
@@ -102,13 +102,13 @@ export function RelationshipInspectorPanel({
             </div>
             {subscription.action.kind !== 'create' && subscription.action.note ? (
               <div className="rounded-lg border border-border bg-muted/35 p-2.5">
-                <div className="mb-1 text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Instruction</div>
+                <div className="mb-1 text-[9.5px] tracking-[0.1em] text-muted-foreground">Instruction</div>
                 <p className="whitespace-pre-wrap leading-5">{subscription.action.note}</p>
               </div>
             ) : null}
             {subscription.action.kind === 'create' ? (
               <div className="space-y-2 rounded-lg border border-border bg-muted/35 p-2.5">
-                <div className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Dynamic topology</div>
+                <div className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Dynamic topology</div>
                 <p className="leading-5">
                   Fixed template <span className="font-mono">{subscription.action.template.templateId}</span>
                   {' · '}fan-out ≤ {subscription.action.limits.maxFanOut}

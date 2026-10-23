@@ -391,7 +391,7 @@ export function ReviewWorkflowComposer({
         {coder.mode === 'new' ? (
           <div className="mt-2 space-y-2">
             <label className="block space-y-1">
-              <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Workspace</span>
+              <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Workspace</span>
               <div className="flex gap-1.5">
                 <input className={fieldClass} value={cwd} placeholder="/path/to/project" onChange={(event) => setCwd(event.target.value)} />
                 <Button variant="outline" size="icon" className="size-8 shrink-0" aria-label="Choose workspace" onClick={() => void chooseFolder()}>
@@ -401,14 +401,14 @@ export function ReviewWorkflowComposer({
             </label>
             <div className="grid grid-cols-2 gap-2">
               <label className="space-y-1">
-                <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Work mode</span>
+                <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Work mode</span>
                 <select className={fieldClass} value={workMode} onChange={(event) => setWorkMode(event.target.value as 'local' | 'worktree')}>
                   <option value="local">Use local checkout</option>
                   <option value="worktree">Create worktree</option>
                 </select>
               </label>
               <label className="space-y-1">
-                <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Base branch</span>
+                <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Base branch</span>
                 <input
                   className={fieldClass}
                   value={branch}
@@ -420,7 +420,7 @@ export function ReviewWorkflowComposer({
           </div>
         ) : null}
         <label className="mt-2 block space-y-1">
-          <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Work prompt</span>
+          <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Work prompt</span>
           <textarea
             className="min-h-24 w-full resize-y rounded-lg border border-border bg-background px-2.5 py-2 text-[11.5px] leading-4 outline-none focus:border-term-accent-hi/60"
             value={coderPrompt}
@@ -439,7 +439,7 @@ export function ReviewWorkflowComposer({
         </p>
         <div className="mt-2">{agentFields('reviewer', reviewer, setReviewer)}</div>
         <label className="mt-2 block space-y-1">
-          <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Review instruction</span>
+          <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Review instruction</span>
           <textarea
             className="min-h-20 w-full resize-y rounded-lg border border-border bg-background px-2.5 py-2 text-[11.5px] leading-4 outline-none focus:border-term-accent-hi/60"
             value={reviewInstruction}
@@ -521,7 +521,7 @@ export function ReviewWorkflowComposer({
         </p>
       ) : null}
       <div className="rounded-xl border border-border bg-card p-2.5">
-        <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-[10.5px] tracking-[0.1em] text-muted-foreground">
           <Save className="size-3.5" />
           Save this workflow
         </div>
@@ -535,7 +535,7 @@ export function ReviewWorkflowComposer({
         </div>
       </div>
       <Button
-        className="h-9 w-full font-mono text-[10.5px] uppercase tracking-[0.06em]"
+        className="h-9 w-full font-mono text-[10.5px] tracking-[0.06em]"
         disabled={!runtimeApi || !validation.ok || setupMessages.length > 0 || preflightPending || isStarting}
         onClick={() => void start()}
       >

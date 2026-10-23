@@ -33,12 +33,12 @@ export function AgentConnectionPanel({ runtimeState, connection }: { runtimeStat
   return (
     <aside
       className="absolute right-3 top-3 z-40 flex max-h-[calc(100%-1.5rem)] w-[360px] flex-col overflow-hidden rounded-xl border border-term-accent-hi/35 bg-background/97 shadow-xl backdrop-blur"
-      aria-label="Connect Agents"
+      aria-label="Connect agents"
     >
       <header className="flex items-center gap-2 border-b border-border px-3 py-2.5">
         <GitPullRequestArrow className="size-3.5 text-lime-700 dark:text-lime-300" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em]">Connect Agents</h2>
+          <h2 className="text-[11px] font-semibold tracking-[0.12em]">Connect agents</h2>
           <p className="truncate text-[10px] text-muted-foreground">
             {statusText(runtimeState, draft.sourceSessionId)} →{' '}
             {target.kind === 'existing' ? statusText(runtimeState, target.sessionId) : target.label || 'New Agent'}
@@ -51,7 +51,7 @@ export function AgentConnectionPanel({ runtimeState, connection }: { runtimeStat
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
         <fieldset className="space-y-2">
-          <legend className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">When should it start?</legend>
+          <legend className="text-[10px] tracking-[0.1em] text-muted-foreground">When should it start?</legend>
           <div className="grid grid-cols-2 gap-2">
             {(
               [
@@ -80,7 +80,7 @@ export function AgentConnectionPanel({ runtimeState, connection }: { runtimeStat
         </fieldset>
 
         <fieldset className="space-y-2">
-          <legend className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">What should the receiver do?</legend>
+          <legend className="text-[10px] tracking-[0.1em] text-muted-foreground">What should the receiver do?</legend>
           <div className="grid gap-1.5">
             {behaviorChoices.map((choice) => (
               <button
@@ -100,8 +100,8 @@ export function AgentConnectionPanel({ runtimeState, connection }: { runtimeStat
         </fieldset>
 
         {target.kind === 'new' ? (
-          <section className="space-y-2" aria-label="New receiving Agent">
-            <div className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">New receiving Agent</div>
+          <section className="space-y-2" aria-label="New receiving agent">
+            <div className="text-[10px] tracking-[0.1em] text-muted-foreground">New receiving agent</div>
             <label className="grid gap-1">
               <span className="text-[9.5px] text-muted-foreground">Name</span>
               <input className={fieldClass} value={target.label} onChange={(event) => connection.updateNewTarget({ label: event.target.value })} />
@@ -121,7 +121,7 @@ export function AgentConnectionPanel({ runtimeState, connection }: { runtimeStat
         ) : null}
 
         <label className="grid gap-1">
-          <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+          <span className="text-[10px] tracking-[0.1em] text-muted-foreground">
             {draft.behavior === 'handoff-once' ? 'Handoff instruction' : 'Review instruction'}
           </span>
           <textarea className={textAreaClass} value={draft.instruction} onChange={(event) => connection.update({ instruction: event.target.value })} />

@@ -1,11 +1,11 @@
-import { ArrowUp, Braces, FolderTree, GitBranch, Paperclip, RefreshCw, Square, Terminal, TriangleAlert } from 'lucide-react';
+import { ArrowUp, Braces, Paperclip, Square, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { statusLabels, statusDotClassNames, sessionProviderLabel, sessionChatId, sessionDisplayLabel } from '@/lib/session-display';
-import { providerOption, runtimeConfigSummary } from '@/lib/provider-catalog';
-import { OpenWorkspaceSplitButton, NewChatSetupBar } from '@/components/new-chat-setup';
-import { compactPath, compactId } from '@/lib/format';
+import { sessionDisplayLabel } from '@/lib/session-display';
+import { providerOption } from '@/lib/provider-catalog';
+import { NewChatSetupBar } from '@/components/new-chat-setup';
+import { ChatOpenMenu } from '@/components/chat-open-menu';
 import { RecoveryNotice } from '@/components/recovery';
 import { SessionTerminalPanel } from '@/components/session-terminal-panel';
 import { LiveSessionTimeline } from '@/components/live-session-timeline';
@@ -13,6 +13,7 @@ import { RuntimeInteractionPanel } from '@/components/runtime-interaction-panel'
 import { LiveProviderEventDrawer } from '@/components/live-provider-event-drawer';
 import { ProviderSetupDiagnostics } from '@/components/provider-settings';
 import { ComposerAttachmentPill } from '@/components/composer-attachment-pill';
+import { ComposerModelControls } from '@/components/composer-model-controls';
 import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 import { type ProviderSetupStatus } from '@/shared/graph-state';
 import { type RuntimeCoreState } from '@/hooks/use-runtime-core';
@@ -93,17 +94,16 @@ export function ChatDetail({
   } = core;
   const selectedPlanCouncil = selectedSession
     ? Object.values(runtimeState.planCouncils ?? {}).find(
-        (council) =>
-          council.coordinatorSessionId === selectedSession.sessionId ||
-          Boolean(council.participants[selectedSession.sessionId]),
+        (council) => council.coordinatorSessionId === selectedSession.sessionId || Boolean(council.participants[selectedSession.sessionId]),
       )
     : undefined;
-  const selectedWorkflowProposals = selectedSession?.role === 'master'
-    ? Object.values(runtimeState.workflowProposals ?? {})
-        .filter((proposal) => proposal.proposedPlan.masterSessionId === selectedSession.sessionId)
-        .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
-    : [];
-  const { openWorkspaceTarget, setOpenWorkspaceTarget } = layout;
+  const selectedWorkflowProposals =
+    selectedSession?.role === 'master'
+      ? Object.values(runtimeState.workflowProposals ?? {})
+          .filter((proposal) => proposal.proposedPlan.masterSessionId === selectedSession.sessionId)
+          .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      : [];
+  const { openWorkspaceTarget, setOpenWorkspaceTarget, effectiveGraphCollapsed, graphForcedCollapsed, setGraphCollapsed } = layout;
   const {
     setMessage,
     composerAttachments,
@@ -137,7 +137,6 @@ export function ChatDetail({
     savingProviderInstanceId,
     providerInstanceError,
     changeNewProviderKind,
-    changeNewProviderInstanceId,
     newCwdValidation,
     newChatProjects,
     chooseNewChatProject,
@@ -219,7 +218,6 @@ export function ChatDetail({
     openingWorkspaceTarget,
     composerDisabled,
     canOpenSelectedWorkspace,
-    startLinkedChat,
     sendChatMessage,
     controlSelectedThreadGoal,
     killSelectedSession,
@@ -231,33 +229,23 @@ export function ChatDetail({
   const { userInputDrafts, setUserInputDraft, pendingInteractionIds, respondToRuntimeRequest, answerRuntimeUserInput } = interactions;
   const { openTurnDiff } = diff;
   const providerBlockingCheck = !selectedSession
-    ? providerSetupStatus?.checks.find(
-        (check) =>
-          check.status === 'error' &&
-          ['binary', 'auth', 'protocol'].includes(check.id),
-      )
+    ? providerSetupStatus?.checks.find((check) => check.status === 'error' && ['binary', 'auth', 'protocol'].includes(check.id))
     : undefined;
   const providerSetupMatchesSelection = Boolean(
     providerSetupStatus &&
-      providerSetupStatus.providerKind === newProviderKind &&
-      providerSetupStatus.providerInstanceId === newProviderInstanceId &&
-      providerSetupStatus.profileFingerprint ===
-        providerSetupProfileFingerprint(
-          selectProviderSetupProfile(
-            providerInstances,
-            newProviderKind,
-            newProviderInstanceId,
-          ),
-        ) &&
-      providerSetupStatus.cwd === newCwd.trim(),
+    providerSetupStatus.providerKind === newProviderKind &&
+    providerSetupStatus.providerInstanceId === newProviderInstanceId &&
+    providerSetupStatus.profileFingerprint ===
+      providerSetupProfileFingerprint(selectProviderSetupProfile(providerInstances, newProviderKind, newProviderInstanceId)) &&
+    providerSetupStatus.cwd === newCwd.trim(),
   );
   const newProviderBlocked = Boolean(
     !selectedSession &&
-      (isLoadingProviderSetupStatus ||
-        !providerSetupMatchesSelection ||
-        providerSetupStatus?.readiness === 'unavailable' ||
-        providerSetupStatus?.auth?.status === 'unauthenticated' ||
-        providerBlockingCheck),
+    (isLoadingProviderSetupStatus ||
+      !providerSetupMatchesSelection ||
+      providerSetupStatus?.readiness === 'unavailable' ||
+      providerSetupStatus?.auth?.status === 'unauthenticated' ||
+      providerBlockingCheck),
   );
 
   return (
@@ -266,82 +254,11 @@ export function ChatDetail({
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2.5">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Chat</span>
               <h2 className="min-w-0 flex-1 truncate text-[14px] font-semibold" title={selectedSession ? sessionDisplayLabel(selectedSession) : undefined}>
-                {selectedSession ? sessionDisplayLabel(selectedSession) : pendingLinkedSource ? 'New Agent' : 'New Chat'}
+                {selectedSession ? sessionDisplayLabel(selectedSession) : pendingLinkedSource ? 'New agent' : 'New chat'}
               </h2>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
-              {selectedSession ? (
-                <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
-                  <span className={cn('size-1.5 rounded-full', statusDotClassNames[selectedSession.status])} />
-                  {statusLabels[selectedSession.status]}
-                </span>
-              ) : null}
-              {selectedSession ? (
-                <OpenWorkspaceSplitButton
-                  target={openWorkspaceTarget}
-                  platform={runtimeHostPlatform}
-                  disabled={!canOpenSelectedWorkspace}
-                  pendingTarget={openingWorkspaceTarget}
-                  onTargetChange={setOpenWorkspaceTarget}
-                  onOpen={openSelectedWorkspace}
-                />
-              ) : null}
-              {selectedSession ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="app-region-no-drag h-7 px-2 font-mono text-[10.5px] uppercase tracking-[0.06em]"
-                      variant={isTerminalPanelOpen && selectedTerminal ? 'secondary' : 'outline'}
-                      size="sm"
-                      disabled={!canOpenSelectedTerminal || isOpeningTerminal}
-                      aria-label="Open Terminal"
-                      onClick={openSelectedTerminal}
-                    >
-                      {isOpeningTerminal ? <RefreshCw className="size-3.5 animate-spin" /> : <Terminal className="size-3.5" />}
-                      <span className="hidden @[34rem]:inline">Terminal</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Open Terminal</TooltipContent>
-                </Tooltip>
-              ) : null}
-              {selectedSession ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="app-region-no-drag h-7 px-2 font-mono text-[10.5px] uppercase tracking-[0.06em]"
-                      variant={isWorkspacePanelOpen ? 'secondary' : 'outline'}
-                      size="sm"
-                      disabled={!selectedSession.cwd.trim()}
-                      aria-label="Workspace files"
-                      onClick={() => setIsWorkspacePanelOpen((current) => !current)}
-                    >
-                      <FolderTree className="size-3.5" />
-                      <span className="hidden @[34rem]:inline">Files</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Workspace files</TooltipContent>
-                </Tooltip>
-              ) : null}
-              {selectedSession ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="app-region-no-drag h-7 px-2 font-mono text-[10.5px] uppercase tracking-[0.06em]"
-                      variant="outline"
-                      size="sm"
-                      disabled={!isRuntimeAvailable}
-                      aria-label="Create Agent from this Chat"
-                      onClick={startLinkedChat}
-                    >
-                      <GitBranch className="size-3.5" />
-                      <span className="hidden @[34rem]:inline">New Agent</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Create one Agent from this Chat. Use New Workflow for ongoing automation.</TooltipContent>
-                </Tooltip>
-              ) : null}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -362,54 +279,26 @@ export function ChatDetail({
                 </TooltipTrigger>
                 <TooltipContent>Diagnostics</TooltipContent>
               </Tooltip>
+              {selectedSession || effectiveGraphCollapsed ? (
+                <ChatOpenMenu
+                  showSessionActions={Boolean(selectedSession)}
+                  target={openWorkspaceTarget}
+                  platform={runtimeHostPlatform}
+                  canOpenWorkspace={canOpenSelectedWorkspace}
+                  pendingTarget={openingWorkspaceTarget}
+                  onTargetChange={setOpenWorkspaceTarget}
+                  onOpenWorkspace={openSelectedWorkspace}
+                  canOpenWorkspaceFiles={Boolean(selectedSession?.cwd.trim())}
+                  isWorkspaceFilesOpen={isWorkspacePanelOpen}
+                  onWorkspaceFilesOpenChange={setIsWorkspacePanelOpen}
+                  canOpenTerminal={canOpenSelectedTerminal}
+                  isOpeningTerminal={isOpeningTerminal}
+                  onOpenTerminal={openSelectedTerminal}
+                  onShowGraph={effectiveGraphCollapsed ? () => setGraphCollapsed(false) : undefined}
+                  graphUnavailable={graphForcedCollapsed}
+                />
+              ) : null}
             </div>
-          </div>
-          <div className="mt-1 flex min-w-0 items-center gap-1.5 font-mono text-[10.5px] leading-4 text-muted-foreground">
-            {selectedSession ? (
-              <>
-                <span className="shrink-0 text-foreground/75">{sessionProviderLabel(selectedSession)}</span>
-                <span className="shrink-0 text-term-faint">·</span>
-                <span className="shrink-0 text-foreground/55">
-                  {runtimeConfigSummary(selectedSession.providerKind, selectedSession.runtimeSettings, selectedSession.effectiveRuntimeConfig)}
-                </span>
-                <span className="shrink-0 text-term-faint">|</span>
-                <span className="min-w-0 flex-1 truncate" title={selectedSession.cwd || undefined}>
-                  {selectedSession.cwd.trim() ? compactPath(selectedSession.cwd) : 'no project'}
-                </span>
-                <span className="shrink-0 text-term-faint">|</span>
-                <span className="shrink-0 text-foreground/70" title={sessionChatId(selectedSession)}>
-                  {compactId(sessionChatId(selectedSession))}
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="shrink-0 text-foreground/75">{providerOption(newProviderKind).label}</span>
-                <span className="shrink-0 text-term-faint">·</span>
-                <span className="max-w-28 shrink-0 truncate text-foreground/55" title={providerInstances.find((instance) => instance.providerInstanceId === newProviderInstanceId)?.label}>
-                  {providerInstances.find((instance) => instance.providerInstanceId === newProviderInstanceId)?.label ?? newProviderInstanceId}
-                </span>
-                <span className="shrink-0 text-term-faint">·</span>
-                <span className="shrink-0 text-foreground/55">
-                  {runtimeConfigSummary(newProviderKind, {
-                    runtimeMode: newRuntimeMode,
-                    model: newModel,
-                    reasoningEffort: newReasoningEffort,
-                  })}
-                </span>
-                <span className="shrink-0 text-term-faint">|</span>
-                <span className="min-w-0 flex-1 truncate" title={newCwd}>
-                  {newCwd.trim() ? compactPath(newCwd.trim()) : 'project required'}
-                </span>
-                {pendingLinkedSource ? (
-                  <>
-                    <span className="shrink-0 text-term-faint">|</span>
-                    <span className="min-w-0 flex-1 truncate text-foreground/70" title={pendingLinkedSource.sessionId}>
-                      from {pendingLinkedSource.label}
-                    </span>
-                  </>
-                ) : null}
-              </>
-            )}
           </div>
         </div>
         {selectedRecoveryState ? (
@@ -516,8 +405,8 @@ export function ChatDetail({
             <>
               {pendingLinkedSource ? (
                 <div className="app-region-no-drag mb-2 rounded-lg border border-accent-ink/25 bg-accent-ink/[0.06] px-3 py-2 font-mono text-[10.5px] leading-4 text-muted-foreground">
-                  <span className="font-medium text-foreground">Creating one Agent from {pendingLinkedSource.label}.</span> This records where it came from; it
-                  does not add ongoing automation. Use New Workflow to keep Agents connected.
+                  <span className="font-medium text-foreground">Creating one agent from {pendingLinkedSource.label}.</span> This records where it came from; it
+                  does not add ongoing automation. Use New workflow to keep agents connected.
                 </div>
               ) : null}
               {!isRuntimeAvailable ? (
@@ -537,7 +426,7 @@ export function ChatDetail({
                   <span className="min-w-0 flex-1">
                     {providerBlockingCheck?.message ?? `${providerOption(newProviderKind).label} needs setup before it can start a chat.`}
                   </span>
-                  <Button className="h-7 shrink-0 font-mono text-[10px] uppercase tracking-[0.07em]" variant="outline" size="sm" onClick={onOpenAgentSettings}>
+                  <Button className="h-7 shrink-0 font-mono text-[10px] tracking-[0.07em]" variant="outline" size="sm" onClick={onOpenAgentSettings}>
                     Agent settings
                   </Button>
                 </div>
@@ -547,26 +436,17 @@ export function ChatDetail({
                 projectCwd={newCwd}
                 validation={newCwdValidation}
                 providerKind={newProviderKind}
-                providerInstanceId={newProviderInstanceId}
-                providerInstances={providerInstances}
                 workMode={newWorkMode}
                 branch={newBranch}
                 runtimeMode={newRuntimeMode}
-                model={newModel}
-                reasoningEffort={newReasoningEffort}
-                discoveredModels={providerSetupStatus?.models?.availableModels}
-                currentModelId={providerSetupStatus?.models?.currentModelId}
                 disabled={isCreating || !isRuntimeAvailable}
                 canChooseProject={isElectron}
                 onProjectChange={setNewCwd}
                 onChooseProject={chooseNewChatProject}
                 onProviderKindChange={changeNewProviderKind}
-                onProviderInstanceIdChange={changeNewProviderInstanceId}
                 onWorkModeChange={setNewWorkMode}
                 onBranchChange={setNewBranch}
                 onRuntimeModeChange={setNewRuntimeMode}
-                onModelChange={setNewModel}
-                onReasoningEffortChange={setNewReasoningEffort}
               />
             </>
           ) : null}
@@ -636,7 +516,7 @@ export function ChatDetail({
                 aria-multiline="true"
                 aria-disabled={composerDisabled}
                 contentEditable={!composerDisabled}
-                data-placeholder={selectedSession ? 'Message this chat' : pendingLinkedSource ? 'Describe what this Agent should do' : 'Start a new chat'}
+                data-placeholder={selectedSession ? 'Message this chat' : pendingLinkedSource ? 'Describe what this agent should do' : 'Start a new chat'}
                 suppressContentEditableWarning
                 onInput={(event) => setMessage(event.currentTarget.innerText)}
                 onPaste={handleComposerPaste}
@@ -664,9 +544,21 @@ export function ChatDetail({
                 </TooltipTrigger>
                 <TooltipContent>Attach files — or drag and drop, or paste</TooltipContent>
               </Tooltip>
-              <div className="ml-auto flex items-center gap-2">
+              <div className="ml-auto flex min-w-0 items-center gap-2">
                 {composerHasPayload && !canKill ? (
                   <span className="hidden font-mono text-[10px] text-term-faint @[26rem]:inline">{sendShortcutHint}</span>
+                ) : null}
+                {!selectedSession ? (
+                  <ComposerModelControls
+                    providerKind={newProviderKind}
+                    model={newModel}
+                    reasoningEffort={newReasoningEffort}
+                    discoveredModels={providerSetupStatus?.models?.availableModels}
+                    currentModelId={providerSetupStatus?.models?.currentModelId}
+                    disabled={isCreating || !isRuntimeAvailable}
+                    onModelChange={setNewModel}
+                    onReasoningEffortChange={setNewReasoningEffort}
+                  />
                 ) : null}
                 {canKill ? (
                   <Tooltip>
@@ -691,16 +583,18 @@ export function ChatDetail({
                         className="size-8 shrink-0 rounded-full"
                         size="icon-sm"
                         disabled={
-                          !isRuntimeAvailable || (selectedSession ? !canResume || isResuming : isCreating || !newCwdValidation.ok || newProviderBlocked) || !composerHasPayload
+                          !isRuntimeAvailable ||
+                          (selectedSession ? !canResume || isResuming : isCreating || !newCwdValidation.ok || newProviderBlocked) ||
+                          !composerHasPayload
                         }
-                        aria-label={!selectedSession && pendingLinkedSource ? 'Create Agent' : 'Send'}
+                        aria-label={!selectedSession && pendingLinkedSource ? 'Create agent' : 'Send'}
                         onClick={sendChatMessage}
                       >
                         <ArrowUp className="size-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {!selectedSession && pendingLinkedSource ? `Create Agent · ${sendShortcutHint}` : `Send · ${sendShortcutHint}`}
+                      {!selectedSession && pendingLinkedSource ? `Create agent · ${sendShortcutHint}` : `Send · ${sendShortcutHint}`}
                     </TooltipContent>
                   </Tooltip>
                 )}

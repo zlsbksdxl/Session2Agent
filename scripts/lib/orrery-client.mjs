@@ -413,6 +413,18 @@ export class OrreryClient {
     )
   }
 
+  listNativeSessions(input = {}) {
+    return this.#request('POST', '/api/runtime/native-sessions/list', input)
+  }
+
+  readNativeSession(input = {}) {
+    return this.#request('POST', '/api/runtime/native-sessions/read', input)
+  }
+
+  importNativeSession(input = {}) {
+    return this.#request('POST', '/api/runtime/native-sessions/import', input)
+  }
+
   async setThreadGoal(input = {}) {
     const requestPath = input.sessionId
       ? `/api/runtime/sessions/${encodeURIComponent(input.sessionId)}/goal`

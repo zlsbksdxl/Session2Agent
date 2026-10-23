@@ -62,7 +62,7 @@ Inline delivery topics also travel through activation metadata to the channel fo
 
 ## Artifacts and reproduction
 
-Artifacts are stored locally under `output/acceptance/<run-id>/<scenario>/`. Each directory contains `result.json`, `graph-state.json`, the event timeline, and per-session transcripts. Additional files contain routing or completion assertions, exact read approvals, or sanitized permission-blockage evidence. This report does not reproduce private transcripts or account identifiers.
+Artifacts are stored locally under `outputs/acceptance/<run-id>/<scenario>/`. Each directory contains `result.json`, `graph-state.json`, the event timeline, and per-session transcripts. Additional files contain routing or completion assertions, exact read approvals, or sanitized permission-blockage evidence. This report does not reproduce private transcripts or account identifiers.
 
 After building the runtime, the Claude matrix command is:
 

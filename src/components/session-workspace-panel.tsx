@@ -261,7 +261,7 @@ export function SessionWorkspacePanel({ sessionId, cwd, runtimeApi, onClose }: S
         <FolderTree className="size-4 shrink-0 text-accent-ink" />
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Workspace</span>
+            <span className="font-mono text-[10px] tracking-[0.16em] text-muted-foreground">Workspace</span>
             <span className="ml-auto font-mono text-[10.5px] tabular-nums text-muted-foreground">{formatFileCount(result)} files</span>
           </div>
           <div className="mt-0.5 truncate font-mono text-[10.5px] text-muted-foreground" title={cwd}>

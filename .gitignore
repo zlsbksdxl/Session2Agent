@@ -164,4 +164,10 @@ internal_docs/
 acceptance-screenshots/
 
 # Generated output and acceptance artifacts
-/output/
+/outputs/*
+
+# Preserve the graph acceptance screenshots already kept in version control.
+!/outputs/playwright/
+/outputs/playwright/*
+!/outputs/playwright/agent-graph-ui-shared-checkpoint/
+!/outputs/playwright/agent-loop-localhost-checkpoint/

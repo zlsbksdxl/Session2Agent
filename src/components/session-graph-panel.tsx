@@ -1,8 +1,10 @@
 import { Background, BackgroundVariant, Controls, MiniMap, ReactFlow, type Connection, type ReactFlowInstance } from '@xyflow/react';
-import { Activity, FileText, MessageSquarePlus, Moon, PanelRightClose, Plus, Sun, Webhook, Workflow } from 'lucide-react';
+import { Activity, Bot, FileText, MessageSquarePlus, PanelRightClose, Plus, Webhook, Workflow } from 'lucide-react';
+import { DropdownMenu } from 'radix-ui';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { capitalizeFirst } from '@/lib/format';
 import { canvasPanelMinWidth, type RailTab } from '@/lib/layout-prefs';
 import { edgeKindClassNames, activityTitle, kernelActorLabel, kernelEventLabel, kernelEventSubject, type GraphEdgeData } from '@/lib/graph-view';
 import { nodeTypes, edgeTypes } from '@/components/canvas';
@@ -22,7 +24,6 @@ import type { DraftEdgeData } from '@/lib/draft-graph-view';
 import { useAgentConnection } from '@/hooks/use-agent-connection';
 import { AgentConnectionPanel } from '@/components/agent-connection-panel';
 import { RelationshipInspectorPanel } from '@/components/relationship-inspector-panel';
-import { ThemePicker } from '@/components/theme-picker';
 
 type SessionGraphPanelProps = {
   core: RuntimeCoreState;
@@ -74,7 +75,7 @@ export function SessionGraphPanel({
   const [selectedRelationship, setSelectedRelationship] = useState<GraphEdgeData>();
   const connectionSourceRef = useRef<string | undefined>(undefined);
   const connectionHandledRef = useRef(false);
-  const { setGraphCollapsed, colorScheme, setColorScheme, theme, setTheme } = layout;
+  const { setGraphCollapsed, colorScheme } = layout;
   const { setPendingLinkedSourceId, startNewChat } = actions;
   const {
     isDiffPanelOpen,
@@ -209,31 +210,49 @@ export function SessionGraphPanel({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            className="h-8 font-mono text-[11px] uppercase tracking-[0.08em]"
-            variant={draft.graph.nodeOrder.length > 0 ? 'secondary' : 'outline'}
-            size="sm"
-            onClick={() => draft.addAgent()}
-          >
-            <Plus className="size-3.5" />
-            <span className="truncate">Agent</span>
-          </Button>
-          <Button
-            className="h-8 font-mono text-[11px] uppercase tracking-[0.08em]"
-            variant={isWorkflowLibraryOpen ? 'secondary' : 'outline'}
-            size="sm"
-            disabled={!runtimeApi}
-            onClick={() => {
-              if (isWorkflowLibraryOpen) {
-                requestWorkflowClose();
-              } else {
-                setIsWorkflowLibraryOpen(true);
-              }
-            }}
-          >
-            <Workflow className="size-3.5" />
-            <span className="truncate">New Workflow</span>
-          </Button>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <Button
+                className="app-region-no-drag size-8"
+                variant={draft.graph.nodeOrder.length > 0 || isWorkflowLibraryOpen ? 'secondary' : 'outline'}
+                size="icon"
+                aria-label="Add agent or workflow"
+                title="Add agent or workflow"
+              >
+                <Plus className="size-4" />
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                align="end"
+                sideOffset={6}
+                collisionPadding={8}
+                className="app-region-no-drag z-50 min-w-40 rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+              >
+                <DropdownMenu.Item
+                  className="flex h-8 cursor-default select-none items-center gap-2 rounded-lg px-2 text-[13px] outline-none data-[highlighted]:bg-muted"
+                  onSelect={() => draft.addAgent()}
+                >
+                  <Bot className="size-4 shrink-0" />
+                  Agent
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className="flex h-8 cursor-default select-none items-center gap-2 rounded-lg px-2 text-[13px] outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-35 data-[highlighted]:bg-muted"
+                  disabled={!runtimeApi}
+                  onSelect={() => {
+                    if (isWorkflowLibraryOpen) {
+                      requestWorkflowClose();
+                    } else {
+                      setIsWorkflowLibraryOpen(true);
+                    }
+                  }}
+                >
+                  <Workflow className="size-4 shrink-0" />
+                  Workflow
+                </DropdownMenu.Item>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
 
           <Tooltip>
             <TooltipTrigger asChild>
@@ -251,7 +270,7 @@ export function SessionGraphPanel({
           </Tooltip>
 
           <Button
-            className="h-8 font-mono text-[11px] uppercase tracking-[0.08em]"
+            className="h-8 font-mono text-[11px] tracking-[0.08em]"
             variant={isDiffPanelOpen ? 'secondary' : 'outline'}
             size="sm"
             disabled={!canOpenDiffPanel}
@@ -270,21 +289,6 @@ export function SessionGraphPanel({
             <TooltipContent>Hide Agent graph</TooltipContent>
           </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={`Switch to ${colorScheme === 'dark' ? 'light' : 'dark'} mode`}
-                onClick={() => setColorScheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-              >
-                {colorScheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{colorScheme === 'dark' ? 'Light mode' : 'Dark mode'}</TooltipContent>
-          </Tooltip>
-
-          <ThemePicker theme={theme} setTheme={setTheme} colorScheme={colorScheme} />
         </div>
       </header>
 
@@ -332,12 +336,12 @@ export function SessionGraphPanel({
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   {emptyState.actions.map((action) =>
                     action === 'start-chat' ? (
-                      <Button key={action} className="font-mono text-[10.5px] uppercase tracking-[0.06em]" variant="outline" onClick={startNewChat}>
+                      <Button key={action} className="font-mono text-[10.5px] tracking-[0.06em]" variant="outline" onClick={startNewChat}>
                         <MessageSquarePlus className="size-3.5" />
                         Start a chat
                       </Button>
                     ) : (
-                      <Button key={action} className="font-mono text-[10.5px] uppercase tracking-[0.06em]" onClick={() => setIsWorkflowLibraryOpen(true)}>
+                      <Button key={action} className="font-mono text-[10.5px] tracking-[0.06em]" onClick={() => setIsWorkflowLibraryOpen(true)}>
                         <Workflow className="size-3.5" />
                         Build a workflow
                       </Button>
@@ -352,7 +356,7 @@ export function SessionGraphPanel({
               <div className="pointer-events-auto rounded-lg border border-border bg-background/88 font-mono shadow-sm backdrop-blur">
                 <div className="flex items-center gap-2 border-b border-border/70 px-2.5 py-2">
                   <Activity className="size-3 shrink-0 text-accent-ink" />
-                  <h2 className="truncate text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Kernel timeline</h2>
+                  <h2 className="truncate text-[10px] tracking-[0.16em] text-muted-foreground">Kernel timeline</h2>
                   <span className="ml-auto tabular-nums text-[11px] text-muted-foreground">#{kernelEvents.at(-1)?.seq}</span>
                 </div>
 
@@ -364,7 +368,7 @@ export function SessionGraphPanel({
                         <div className="flex min-w-0 items-center gap-1.5">
                           <span
                             className={cn(
-                              'rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.06em]',
+                              'rounded border px-1.5 py-0.5 text-[10px] tracking-[0.06em]',
                               kernelActorClassNames[event.actor.kind] ?? kernelActorClassNames.runtime,
                             )}
                             title={`actor: ${event.actor.kind}${event.actor.ref ? ` (${event.actor.ref})` : ''}${event.causeId ? `\ncause: ${event.causeId}` : ''}`}
@@ -391,7 +395,7 @@ export function SessionGraphPanel({
               <div className="pointer-events-auto rounded-lg border border-border bg-background/88 font-mono shadow-sm backdrop-blur">
                 <div className="flex items-center gap-2 border-b border-border/70 px-2.5 py-2">
                   <Activity className="size-3 shrink-0 text-accent-ink" />
-                  <h2 className="truncate text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Graph events</h2>
+                  <h2 className="truncate text-[10px] tracking-[0.16em] text-muted-foreground">Graph events</h2>
                   <span className="ml-auto tabular-nums text-[11px] text-muted-foreground">{graphActivity.length}</span>
                 </div>
 
@@ -405,11 +409,11 @@ export function SessionGraphPanel({
                         <div className="flex min-w-0 items-center gap-1.5">
                           <span
                             className={cn(
-                              'rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.06em]',
+                              'rounded border px-1.5 py-0.5 text-[10px] tracking-[0.06em]',
                               event.kind === 'report' ? edgeKindClassNames.report : edgeKindClassNames[event.kind],
                             )}
                           >
-                            {activityTitle(event.kind)}
+                            {capitalizeFirst(activityTitle(event.kind))}
                           </span>
                           <span className="truncate font-medium text-foreground/90">{event.title}</span>
                         </div>

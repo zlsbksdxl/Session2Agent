@@ -1,9 +1,8 @@
 import { CollaborationWorkspacePanel } from '@/components/collaboration-workspace-panel';
 import '@xyflow/react/dist/style.css';
 import { type KeyboardEvent as ReactKeyboardEvent, useRef, useState } from 'react';
-import { Activity, PanelRightOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { chatPanelMinWidth } from '@/lib/layout-prefs';
 import { RuntimeDiagnosticsToast } from '@/components/recovery';
@@ -30,6 +29,8 @@ import { useOrchestration } from '@/hooks/use-orchestration';
 import { useDraftGraph } from '@/hooks/use-draft-graph';
 import { PlanCouncilWorkbench } from '@/components/plan-council-workbench';
 import { AgentSettingsPanel } from '@/components/agent-settings-panel';
+import { AppearanceSettingsPanel } from '@/components/appearance-settings-panel';
+import { NativeSessionImportDialog } from '@/components/native-session-import-dialog';
 import { preferRuntimeSnapshot } from '../shared/runtime-state-patch';
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
   const [providerSetupSessionId, setProviderSetupSessionId] = useState<string>();
   const [isWorkspacePanelOpen, setIsWorkspacePanelOpen] = useState(false);
   const [isWorkflowLibraryOpen, setIsWorkflowLibraryOpen] = useState(false);
+  const [isNativeSessionImportOpen, setIsNativeSessionImportOpen] = useState(false);
   const [selectedCanvasNodeIds, setSelectedCanvasNodeIds] = useState<string[]>([]);
   const [activeClusterId, setActiveClusterId] = useState<string>();
   const [workflowNotice, setWorkflowNotice] = useState<string>();
@@ -75,10 +77,10 @@ function App() {
     splitContainerRef,
     chatPanelWidth,
     isResizingChatPanel,
-    setIsResizingChatPanel,
+    startResizingChatPanel,
+    stopResizingPanels,
     setGraphCollapsed,
     adjustChatPanelWidth,
-    graphForcedCollapsed,
     effectiveGraphCollapsed,
   } = layout;
   const openPlanCouncil = openPlanCouncilId ? runtimeState.planCouncils?.[openPlanCouncilId] : undefined;
@@ -242,7 +244,8 @@ function App() {
       newProviderInstance,
     },
   });
-  const showGraphSurface = activeTab !== 'agents' && activeTab !== 'workspace';
+  const isSettingsPage = activeTab === 'agents' || activeTab === 'appearance';
+  const showGraphSurface = !isSettingsPage && activeTab !== 'workspace';
 
   return (
     <TooltipProvider>
@@ -250,12 +253,14 @@ function App() {
         {/* ===== Sidebar: nav + chat list ===== */}
         <SidebarRail
           core={core}
+          layout={layout}
           sessionList={sessionList}
           actions={actions}
           interactions={interactions}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           selectedWorkspaceId={selectedWorkspaceId}
+          onImportChat={() => setIsNativeSessionImportOpen(true)}
           onNewWorkspace={() => {
             setOpenPlanCouncilId(undefined);
             setSelectedWorkspaceId(undefined);
@@ -273,6 +278,28 @@ function App() {
             setIsWorkflowLibraryOpen(true);
           }}
         />
+
+        {isNativeSessionImportOpen && runtimeApi ? (
+          <NativeSessionImportDialog
+            runtimeApi={runtimeApi}
+            providerInstances={providerInstances}
+            initialProviderInstanceId={selectedSession?.providerInstanceId ?? newChat.newProviderInstanceId}
+            onClose={() => setIsNativeSessionImportOpen(false)}
+            onImported={(result) => {
+              acceptRuntimeState(result.state);
+              clearComposer();
+              actions.setPendingLinkedSourceId(null);
+              setSelectedSessionId(result.sessionId);
+              setSelectedCanvasNodeIds([result.sessionId]);
+              setSelectedWorkspaceId(undefined);
+              setReturnToWorkspaceId(undefined);
+              setProviderSetupSessionId(undefined);
+              setActiveTab('chat');
+              setGraphCollapsed(false);
+              setIsNativeSessionImportOpen(false);
+            }}
+          />
+        ) : null}
 
         {/* ===== Detail: selected chat or orchestrate ===== */}
         <section
@@ -372,8 +399,10 @@ function App() {
                 savingProviderInstanceId={newChat.savingProviderInstanceId}
                 providerInstanceError={newChat.providerInstanceError}
                 onSaveProviderInstance={newChat.saveProviderInstance}
+                onBack={() => setActiveTab('chat')}
               />
             ) : null}
+            {activeTab === 'appearance' ? <AppearanceSettingsPanel layout={layout} onBack={() => setActiveTab('chat')} /> : null}
           </div>
         </section>
 
@@ -389,9 +418,12 @@ function App() {
               isResizingChatPanel && 'bg-accent',
             )}
             onPointerDown={(event) => {
+              if (!event.isPrimary || event.button !== 0) return;
               event.preventDefault();
-              setIsResizingChatPanel(true);
+              event.currentTarget.setPointerCapture(event.pointerId);
+              startResizingChatPanel(event.pointerId);
             }}
+            onLostPointerCapture={stopResizingPanels}
             onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
               const step = event.shiftKey ? 48 : 24;
               if (event.key === 'ArrowLeft') {
@@ -409,22 +441,7 @@ function App() {
         )}
 
         {/* ===== Session graph (collapsible) ===== */}
-        {!showGraphSurface ? null : effectiveGraphCollapsed ? (
-          <div className="flex h-dvh shrink-0 flex-col items-center gap-3 border-l border-border bg-background px-1.5 py-3">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Show Agent graph" onClick={() => setGraphCollapsed(false)}>
-                  <PanelRightOpen className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">{graphForcedCollapsed ? 'Widen window to show Agent graph' : 'Show Agent graph'}</TooltipContent>
-            </Tooltip>
-            <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground [writing-mode:vertical-rl]">
-              <Activity className="size-3.5 text-accent-ink" />
-              Agent graph
-            </span>
-          </div>
-        ) : (
+        {!showGraphSurface || effectiveGraphCollapsed ? null : (
           <SessionGraphPanel
             core={core}
             layout={layout}
@@ -447,7 +464,7 @@ function App() {
             }}
           />
         )}
-        {selectedSession && isWorkspacePanelOpen ? (
+        {!isSettingsPage && selectedSession && isWorkspacePanelOpen ? (
           <div className="app-region-no-drag absolute inset-y-0 right-0 z-40 flex max-w-full shadow-2xl">
             <SessionWorkspacePanel
               sessionId={selectedSession.sessionId}

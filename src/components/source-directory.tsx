@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Activity, GitBranch, Plus, Send, SquareTerminal, Trash2, Webhook, X, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatClock } from '@/lib/format';
+import { capitalizeFirst, formatClock } from '@/lib/format';
 import type { ExternalSource, ExternalSourceKind, GraphState } from '@/shared/graph-state';
 import type { RuntimeApi } from '@/runtime-client';
 
@@ -111,7 +111,7 @@ export function SourceDirectoryPanel({
     <aside className="flex w-[360px] shrink-0 flex-col border-l border-border bg-background font-mono">
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-3">
         <Webhook className="size-4 text-accent-ink" />
-        <h2 className="text-[12px] uppercase tracking-[0.14em] text-foreground">Trigger sources</h2>
+        <h2 className="text-[12px] tracking-[0.14em] text-foreground">Trigger sources</h2>
         <Button className="ml-auto" variant="ghost" size="icon" aria-label="Close sources" onClick={onClose}>
           <X className="size-4" />
         </Button>
@@ -133,7 +133,7 @@ export function SourceDirectoryPanel({
                 <div className="flex items-center gap-1.5 text-[11.5px] font-medium">
                   <Icon className="size-3.5 shrink-0 text-sky-600 dark:text-sky-300" />
                   <span className="truncate">{source.label ?? source.id}</span>
-                  <span className="ml-auto shrink-0 text-[10px] uppercase tracking-[0.06em] text-muted-foreground">{removed ? 'removed' : source.kind}</span>
+                  <span className="ml-auto shrink-0 text-[10px] tracking-[0.06em] text-muted-foreground">{removed ? 'Removed' : capitalizeFirst(source.kind)}</span>
                 </div>
                 <div className="mt-1 text-[10.5px] leading-4 text-muted-foreground">
                   <div>
@@ -146,7 +146,7 @@ export function SourceDirectoryPanel({
                   <div className="mt-1.5 flex items-center gap-1.5">
                     {source.kind === 'manual' || source.kind === 'webhook' ? (
                       <Button
-                        className="h-6 px-2 font-mono text-[10px] uppercase tracking-[0.06em]"
+                        className="h-6 px-2 font-mono text-[10px] tracking-[0.06em]"
                         variant="outline"
                         size="sm"
                         onClick={() => void emitTest(source)}
@@ -156,7 +156,7 @@ export function SourceDirectoryPanel({
                       </Button>
                     ) : null}
                     <Button
-                      className="ml-auto h-6 px-2 font-mono text-[10px] uppercase tracking-[0.06em]"
+                      className="ml-auto h-6 px-2 font-mono text-[10px] tracking-[0.06em]"
                       variant="ghost"
                       size="sm"
                       onClick={() => void remove(source.id)}
@@ -173,7 +173,7 @@ export function SourceDirectoryPanel({
         {emitFeedback ? <p className="text-[10.5px] leading-4 text-muted-foreground">{emitFeedback}</p> : null}
 
         <div className="rounded-lg border border-border bg-card p-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] text-muted-foreground">
             <Plus className="size-3.5" />
             Register source
           </div>
@@ -219,7 +219,7 @@ export function SourceDirectoryPanel({
               />
             ) : null}
             <Button
-              className="h-7 w-full font-mono text-[10.5px] uppercase tracking-[0.06em]"
+              className="h-7 w-full font-mono text-[10.5px] tracking-[0.06em]"
               size="sm"
               disabled={!runtimeApi || isSubmitting || (kind === 'script' && !command.trim()) || (kind === 'git' && !repoPath.trim())}
               onClick={() => void register()}

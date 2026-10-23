@@ -5,7 +5,7 @@ import { TermChip, TermLabel, termInputCls, termTextareaCls, termActionBtnCls } 
 import { statePillBase } from '@/lib/session-display';
 import { loopPolicySummary, loopStateStatus } from '@/lib/graph-view';
 import { ProviderSegmentedControl, ProjectCwdField } from '@/components/new-chat-setup';
-import { compactId } from '@/lib/format';
+import { capitalizeFirst, compactId } from '@/lib/format';
 import { workflowStatusPillClassName, WorkflowStep, WorkflowSummaryRow } from '@/components/workflow';
 import { type Dispatch, type SetStateAction, useState } from 'react';
 import { type RailTab } from '@/lib/layout-prefs';
@@ -122,7 +122,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
                   : 'border-ink-line bg-foreground/[0.04] text-term-dim',
             )}
           >
-            {activeCluster?.frozen ? 'frozen' : activeLoopStatus}
+            {activeCluster?.frozen ? 'Frozen' : capitalizeFirst(activeLoopStatus)}
           </span>
         </div>
 
@@ -136,7 +136,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
       <section className="rounded-lg border border-ink-line bg-ink p-3 font-mono">
         <div className="flex items-center gap-2">
           <LockKeyhole className="size-3.5 text-term-cyan" />
-          <span className="text-[10px] uppercase tracking-[0.16em] text-term-dim2">Session scheduling</span>
+          <span className="text-[10px] tracking-[0.16em] text-term-dim2">Session scheduling</span>
           <span
             className={cn(
               'ml-auto',
@@ -144,7 +144,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
               serializeWorkspaceAccess ? 'border-term-amber/30 bg-term-amber/10 text-term-amber' : 'border-term-green/30 bg-term-green/10 text-term-green',
             )}
           >
-            {serializeWorkspaceAccess ? 'serialized' : 'parallel'}
+            {serializeWorkspaceAccess ? 'Serialized' : 'Parallel'}
           </span>
         </div>
         <button
@@ -179,7 +179,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
       <section className="space-y-2.5 rounded-lg border border-ink-line bg-ink p-3 font-mono">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="size-3.5 text-term-cyan" />
-          <span className="text-[10px] uppercase tracking-[0.16em] text-term-dim2">Active workflow</span>
+          <span className="text-[10px] tracking-[0.16em] text-term-dim2">Active workflow</span>
           <span className="ml-auto text-[10.5px] tabular-nums text-term-faint">{activeCluster ? activeManagedSessions.length : 0} managed</span>
         </div>
 
@@ -231,7 +231,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
                     : 'border-ink-line bg-foreground/[0.04] text-term-dim',
                 )}
               >
-                {activeLoopStatus}
+                {capitalizeFirst(activeLoopStatus)}
               </span>
               <span className="tabular-nums text-term-cyan">
                 {activeLoopIterations}/{activeLoopMaxIterations}
@@ -268,11 +268,11 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
 
         <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
           <label className="min-w-0 space-y-1.5">
-            <TermLabel>cluster name</TermLabel>
+            <TermLabel>Cluster name</TermLabel>
             <input className={termInputCls} value={clusterLabel} onChange={(event) => setClusterLabel(event.target.value)} />
           </label>
           <label className="space-y-1.5">
-            <TermLabel>max turns</TermLabel>
+            <TermLabel>Max turns</TermLabel>
             <input
               className={cn(termInputCls, 'tabular-nums')}
               inputMode="numeric"
@@ -338,12 +338,12 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
         <ProjectCwdField value={newCwd} validation={newCwdValidation} disabled={isCreatingMaster} onChange={setNewCwd} />
 
         <div className="space-y-1.5">
-          <TermLabel>provider</TermLabel>
+          <TermLabel>Provider</TermLabel>
           <ProviderSegmentedControl value={newProviderKind} disabled={isCreatingMaster} onChange={changeNewProviderKind} />
         </div>
 
         <label className="block space-y-1.5">
-          <TermLabel>master instructions</TermLabel>
+          <TermLabel>Master instructions</TermLabel>
           <textarea
             className={cn(termTextareaCls, 'min-h-20 max-h-32 text-xs leading-5')}
             value={masterPrompt}
@@ -397,7 +397,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
             <div className="flex min-w-0 items-center gap-2">
               <span className="min-w-0 flex-1 truncate text-[12px] text-term-name">{selectedSession?.label ?? 'Selected chat'}</span>
               <span className={cn(statePillBase, workflowStatusPillClassName(!selectedSession ? 'blocked' : selectedSessionFrozen ? 'done' : 'active'))}>
-                {!selectedSession ? 'no chat' : selectedSessionFrozen ? 'frozen' : 'ready'}
+                {!selectedSession ? 'No chat' : selectedSessionFrozen ? 'Frozen' : 'Ready'}
               </span>
             </div>
             <Button
@@ -423,7 +423,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
             <div className="flex min-w-0 items-center gap-2">
               <span className="min-w-0 flex-1 truncate text-[12px] text-term-name">{activeCluster?.label ?? 'Active cluster'}</span>
               <span className={cn(statePillBase, workflowStatusPillClassName(!activeCluster ? 'blocked' : activeCluster.frozen ? 'done' : 'active'))}>
-                {!activeCluster ? 'no cluster' : activeCluster.frozen ? 'frozen' : 'ready'}
+                {!activeCluster ? 'No cluster' : activeCluster.frozen ? 'Frozen' : 'Ready'}
               </span>
             </div>
             <Button
@@ -483,7 +483,7 @@ export function OrchestratePanel({ core, newChat, actions, orchestration, setAct
                           : 'border-ink-line bg-foreground/[0.04] text-term-dim',
                       )}
                     >
-                      {cluster.frozen ? 'frozen' : loopStatus}
+                      {cluster.frozen ? 'Frozen' : capitalizeFirst(loopStatus)}
                     </span>
                   </div>
                   <div className="mt-1.5 grid gap-0.5 text-[11px]">

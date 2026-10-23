@@ -575,6 +575,7 @@ export const graphStateSchema = {
       providerKind: '"claude-code" | "codex" | "grok"',
       providerInstanceId: 'string',
       providerSessionId: 'string?',
+      nativeSessionOrigin: 'NativeSessionOrigin?',
       runtimeSettings: 'ProviderRuntimeSettings?',
       archived: 'boolean?',
       runtimeEvents: 'ProviderRuntimeEvent[]',

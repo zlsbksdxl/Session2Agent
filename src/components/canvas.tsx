@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { BaseEdge, EdgeLabelRenderer, Handle, type Edge, type EdgeProps, type Node, type NodeProps, Position, getBezierPath } from '@xyflow/react';
+import { BaseEdge, EdgeLabelRenderer, type Edge, type EdgeProps, type Node, type NodeProps, Position, getBezierPath } from '@xyflow/react';
 import { Activity, Bot, Clock, GitBranch, RotateCw, Snowflake, SquareTerminal, Webhook, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TermChip } from '@/components/terminal';
@@ -19,12 +19,13 @@ import {
 import { statusLabels, statePillBase, nodeStatePillCls } from '@/lib/session-display';
 import { formatClock } from '@/lib/format';
 import { DraftAgentNode, DraftRelationshipEdge } from '@/components/draft-canvas';
+import { GraphHandle } from '@/components/graph-handle';
 
 export const AgentNode = memo(function AgentNode({ data, selected }: NodeProps<Node<AgentNodeData>>) {
   const isMaster = data.role === 'master';
   const freezeReason = data.freezeReason ?? data.masterReason;
   const AgentGlyph = data.providerKind ? agentIcons[data.providerKind] : Bot;
-  const VendorGlyph = data.providerKind ? vendorIcons[data.providerKind] : undefined;
+  const VendorGlyph = data.providerKind === 'grok' ? vendorIcons.grok : undefined;
   const modelFamily = modelFamilyIcon(data.model, data.providerKind);
   return (
     <div
@@ -34,30 +35,29 @@ export const AgentNode = memo(function AgentNode({ data, selected }: NodeProps<N
         selected && '!border-term-accent-hi/60 ring-2 ring-term-accent-hi/50',
       )}
     >
-      <Handle
+      <GraphHandle
         id="target-left"
         type="target"
         position={Position.Left}
         style={{ top: '62%' }}
-        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        className="!size-3 !border-2 !border-card"
         aria-label={`Connect into ${data.label} from the left`}
       />
-      <Handle
+      <GraphHandle
         id="source-left"
         type="source"
         position={Position.Left}
         style={{ top: '38%' }}
-        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        className="!size-3 !border-2 !border-card"
         aria-label={`Connect from ${data.label} on the left`}
       />
       <div className="flex items-center gap-2.5 px-3.5 pb-2.5 pt-3">
-        {/* Identity trio (agent harness / model family / model vendor): the
-            avatar tile is the harness, its corner badge the vendor, and the
-            subline carries the model id with its family glyph. */}
+        {/* The main glyph identifies the harness. Grok nodes add a vendor
+            badge; the subline carries the model id with its family glyph. */}
         <div
           className={cn(
-            'relative flex size-8 shrink-0 items-center justify-center rounded-lg border',
-            isMaster ? 'border-term-amber/45 bg-term-amber/10 text-term-amber' : 'border-term-accent/35 bg-term-accent/10 text-accent-ink',
+            'relative flex size-8 shrink-0 items-center justify-center',
+            isMaster ? 'text-term-amber' : 'text-accent-ink',
             data.status === 'running' && 'animate-pulse',
           )}
           title={data.agent}
@@ -85,7 +85,7 @@ export const AgentNode = memo(function AgentNode({ data, selected }: NodeProps<N
         </div>
         {data.frozen || isMaster || data.status !== 'idle' ? (
           <span className={cn(statePillBase, nodeStatePillCls(data.status, data.role, data.frozen))}>
-            {data.frozen ? 'frozen' : isMaster ? 'master' : statusLabels[data.status].toLowerCase()}
+            {data.frozen ? 'Frozen' : isMaster ? 'Master' : statusLabels[data.status]}
           </span>
         ) : null}
       </div>
@@ -132,9 +132,9 @@ export const AgentNode = memo(function AgentNode({ data, selected }: NodeProps<N
 
         {data.frozen ? (
           <div className="mt-2 rounded-lg border border-border bg-muted/40 px-2.5 py-2">
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-[10px] tracking-[0.12em] text-muted-foreground">
               <Snowflake className="size-3" />
-              freeze
+              Freeze
             </div>
             {freezeReason ? <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground">{freezeReason}</p> : null}
           </div>
@@ -151,20 +151,20 @@ export const AgentNode = memo(function AgentNode({ data, selected }: NodeProps<N
           </span>
         ) : null}
       </div>
-      <Handle
+      <GraphHandle
         id="target-right"
         type="target"
         position={Position.Right}
         style={{ top: '62%' }}
-        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        className="!size-3 !border-2 !border-card"
         aria-label={`Connect into ${data.label} from the right`}
       />
-      <Handle
+      <GraphHandle
         id="source-right"
         type="source"
         position={Position.Right}
         style={{ top: '38%' }}
-        className="!size-3 !border-2 !border-card !bg-term-accent-hi"
+        className="!size-3 !border-2 !border-card"
         aria-label={`Connect from ${data.label} on the right`}
       />
     </div>
@@ -223,7 +223,7 @@ export const ClockNode = memo(function ClockNode({ data }: NodeProps<Node<TimerN
       <div className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
         {data.lastTickAt ? `last tick ${formatClock(data.lastTickAt)}` : 'no ticks yet'}
       </div>
-      <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-term-accent-hi" />
+      <GraphHandle type="source" position={Position.Right} className="!size-2 !border-0" />
     </div>
   );
 });
@@ -262,7 +262,7 @@ export const SourceNode = memo(function SourceNode({ data }: NodeProps<Node<Sour
           'no events yet'
         )}
       </div>
-      <Handle type="source" position={Position.Right} className="!size-2 !border-0 !bg-sky-500" />
+      <GraphHandle type="source" position={Position.Right} className="!size-2 !border-0" />
     </div>
   );
 });

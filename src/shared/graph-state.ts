@@ -39,6 +39,7 @@ import type {
   WorkspaceLease,
 } from '@shared/resource-governance';
 import type { ThreadGoal } from '@shared/thread-goal';
+import type { NativeSessionOrigin } from '@shared/native-session';
 
 export const graphStateVersion = 8;
 
@@ -389,6 +390,7 @@ export const graphStateSchema = {
       masterReason: 'string?',
     },
     AgentSession: {
+      nativeSessionOrigin: 'NativeSessionOrigin?',
       archived: 'boolean?',
     },
     GraphEdge: {
@@ -581,6 +583,7 @@ export type AgentSession = {
   providerInstanceId: string;
   providerSessionId?: string;
   providerResumeCursor?: string;
+  nativeSessionOrigin?: NativeSessionOrigin;
   forkedFrom?: SessionForkOrigin;
   providerFork?: PendingProviderFork;
   agent: string;

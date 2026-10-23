@@ -18,7 +18,7 @@ const artifactDir = path.resolve(
   argument(
     "artifact-dir",
     process.env.LOOPERATORS_P0_ARTIFACT_DIR ??
-      path.join(process.cwd(), "output", "looperators-agent-loop-p0"),
+      path.join(process.cwd(), "outputs", "looperators-agent-loop-p0"),
   ),
 );
 const token =

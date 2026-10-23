@@ -59,7 +59,7 @@ export function AgentRuntimeFields({
     >
       <div className="grid grid-cols-2 gap-2">
         <label className="space-y-1">
-          <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Provider</span>
+          <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Provider</span>
           <select className={fieldClass} value={value.providerKind} onChange={(event) => updateProvider(event.target.value as ProviderKind)}>
             {providerOptions
               .filter((option) => !allowedProviderKinds || allowedProviderKinds.includes(option.id))
@@ -71,7 +71,7 @@ export function AgentRuntimeFields({
           </select>
         </label>
         <label className="space-y-1">
-          <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Profile</span>
+          <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Profile</span>
           <select
             className={fieldClass}
             value={value.providerInstanceId}
@@ -89,7 +89,7 @@ export function AgentRuntimeFields({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <label className="space-y-1">
-          <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Model</span>
+          <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Model</span>
           <input
             className={fieldClass}
             list={`${idPrefix}-models`}
@@ -106,7 +106,7 @@ export function AgentRuntimeFields({
         </label>
         {hideRuntime ? null : (
           <label className="space-y-1">
-            <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Runtime</span>
+            <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Runtime</span>
             <select
               className={fieldClass}
               value={value.runtimeMode}
@@ -127,7 +127,7 @@ export function AgentRuntimeFields({
       </div>
       {providerSupportsReasoningEffort(value.providerKind) ? (
         <label className="block space-y-1">
-          <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Reasoning</span>
+          <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Reasoning</span>
           <select
             className={fieldClass}
             value={value.reasoningEffort}
@@ -155,7 +155,7 @@ export function ReviewPolicyFields({ value, onChange }: { value: ReviewPolicyVal
   return (
     <div className="space-y-2">
       <label className="block space-y-1">
-        <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Blocking issues</span>
+        <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Blocking issues</span>
         <select
           className={fieldClass}
           value={value.blockingMode}
@@ -175,7 +175,7 @@ export function ReviewPolicyFields({ value, onChange }: { value: ReviewPolicyVal
         />
       ) : null}
       <label className="block space-y-1">
-        <span className="text-[9.5px] uppercase tracking-[0.1em] text-muted-foreground">Max laps · 1–99</span>
+        <span className="text-[9.5px] tracking-[0.1em] text-muted-foreground">Max laps · 1–99</span>
         <input
           className={fieldClass}
           type="number"

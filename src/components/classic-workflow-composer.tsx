@@ -324,7 +324,7 @@ export function ClassicWorkflowComposer({
 
   const agentFields = (title: string, value: AgentDraft, setValue: typeof setSource) => (
     <section className="space-y-2 rounded-xl border border-border bg-card/60 p-3">
-      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em]">
+      <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.1em]">
         <GitBranch className="size-3.5 text-sky-500" />
         {title}
       </div>
@@ -467,12 +467,12 @@ export function ClassicWorkflowComposer({
       ) : null}
       {kind === 'handoff' ? (
         <label className="block space-y-1">
-          <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Handoff note</span>
+          <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Handoff note</span>
           <textarea className={textAreaClass} value={note} onChange={(event) => setNote(event.target.value)} />
         </label>
       ) : (
         <section className="space-y-2 rounded-xl border border-border bg-card/60 p-3">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em]">
+          <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.1em]">
             <Flag className="size-3.5 text-lime-500" />
             Stop when
           </div>
@@ -493,7 +493,7 @@ export function ClassicWorkflowComposer({
             onChange={(event) => setMaxLaps(event.target.value)}
           />
           <label className="block space-y-1">
-            <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Judge provider</span>
+            <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Judge provider</span>
             <select
               className={fieldClass}
               value={judgeProviderInstanceId}
@@ -513,7 +513,7 @@ export function ClassicWorkflowComposer({
           </label>
           {judgeProviderInstanceId ? (
             <label className="block space-y-1">
-              <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Judge model</span>
+              <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Judge model</span>
               <input
                 className={fieldClass}
                 list="goal-judge-models"
@@ -540,7 +540,7 @@ export function ClassicWorkflowComposer({
         </section>
       )}
       <section className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-3 text-[10.5px] leading-4">
-        <div className="flex items-center gap-1.5 font-semibold uppercase tracking-[0.1em]">
+        <div className="flex items-center gap-1.5 font-semibold tracking-[0.1em]">
           <CheckCircle2 className="size-3.5" />
           Preview
         </div>
@@ -597,7 +597,7 @@ export function ClassicWorkflowComposer({
         </Button>
       </div>
       <Button
-        className="h-8 w-full font-mono text-[10.5px] uppercase tracking-[0.06em]"
+        className="h-8 w-full font-mono text-[10.5px] tracking-[0.06em]"
         disabled={!runtimeApi || !validation.ok || setupMessages.length > 0 || preflightPending || isStarting}
         onClick={() => void start()}
       >

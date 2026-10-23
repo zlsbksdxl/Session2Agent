@@ -42,15 +42,6 @@ export function useRuntimeCore() {
   const isRuntimeAvailable = Boolean(runtimeApi);
   const isElectron = !demoMode && runtimeClient.kind === 'electron';
   const runtimeHostPlatform = runtimeClient.kind === 'electron' || runtimeClient.kind === 'http' ? runtimeClient.platform : undefined;
-  const runtimeModeLabel = demoMode
-    ? 'demo'
-    : runtimeClient.kind === 'electron'
-      ? 'electron'
-      : runtimeClient.kind === 'http'
-        ? 'web runtime'
-        : runtimeClient.kind === 'connecting'
-          ? 'connecting'
-          : 'no runtime';
   const runtimeStatusText =
     runtimeClient.kind === 'http'
       ? `Web runtime ${runtimeClient.runtimeUrl}`
@@ -133,7 +124,6 @@ export function useRuntimeCore() {
     isRuntimeAvailable,
     isElectron,
     runtimeHostPlatform,
-    runtimeModeLabel,
     runtimeStatusText,
     runtimeUnavailableText,
     runtimeState,

@@ -1,10 +1,29 @@
-import { type Dispatch, type SetStateAction, useCallback, useState } from 'react';
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react';
 
 import type { AgentSession, GraphState, RuntimeStateDiagnostic } from '@/shared/graph-state';
 import type { RuntimeApi } from '@/runtime-client';
 import { latestReportForSession } from '@/lib/reports';
 import { sessionRecoveryState } from '@/lib/diagnostics';
 import { sessionMatchesSearch } from '@/lib/session-display';
+
+const pinnedSessionIdsStorageKey = 'orrery.pinnedSessionIds.v1';
+
+function initialPinnedSessionIds(): string[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const stored: unknown = JSON.parse(window.localStorage.getItem(pinnedSessionIdsStorageKey) ?? '[]');
+    if (!Array.isArray(stored)) {
+      return [];
+    }
+
+    return [...new Set(stored.filter((id): id is string => typeof id === 'string' && id.trim().length > 0))];
+  } catch {
+    return [];
+  }
+}
 
 export function useSessionList({
   runtimeApi,
@@ -26,30 +45,53 @@ export function useSessionList({
   const [sessionSearch, setSessionSearch] = useState('');
   const [showArchivedSessions, setShowArchivedSessions] = useState(false);
   const [archivingSessionIds, setArchivingSessionIds] = useState<Record<string, boolean>>({});
+  const [pinnedSessionIds, setPinnedSessionIds] = useState(initialPinnedSessionIds);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(pinnedSessionIdsStorageKey, JSON.stringify(pinnedSessionIds));
+    } catch {
+      // Pinning still works when preference storage is unavailable.
+    }
+  }, [pinnedSessionIds]);
+
+  const toggleSessionPinned = useCallback((sessionId: string) => {
+    if (!sessionId.trim()) {
+      return;
+    }
+
+    setPinnedSessionIds((current) => (current.includes(sessionId) ? current.filter((id) => id !== sessionId) : [sessionId, ...current]));
+  }, []);
 
   const runningSessions = sessions.filter((session) => session.status === 'running' || session.status === 'pending');
   const archivedSessionCount = sessions.filter((session) => session.archived).length;
-  const filteredSessions = sessions.filter((session) => {
-    if (session.archived && !showArchivedSessions) {
-      return false;
-    }
+  const pinnedSessionOrder = new Map(pinnedSessionIds.map((id, index) => [id, index]));
+  const filteredSessions = sessions
+    .filter((session) => {
+      if (session.archived && !showArchivedSessions) {
+        return false;
+      }
 
-    const node = runtimeState.nodes.find((candidate) => candidate.sessionId === session.sessionId);
-    const managedCluster = Object.values(runtimeState.clusters).find((cluster) => cluster.nodeIds.includes(session.sessionId));
-    const latestReport = latestReportForSession(runtimeState.reports, session.sessionId);
-    const recovery = sessionRecoveryState({
-      session,
-      diagnostics: runtimeDiagnostics,
-      frozen: node?.frozen === true || managedCluster?.frozen === true,
-    });
+      const node = runtimeState.nodes.find((candidate) => candidate.sessionId === session.sessionId);
+      const managedCluster = Object.values(runtimeState.clusters).find((cluster) => cluster.nodeIds.includes(session.sessionId));
+      const latestReport = latestReportForSession(runtimeState.reports, session.sessionId);
+      const recovery = sessionRecoveryState({
+        session,
+        diagnostics: runtimeDiagnostics,
+        frozen: node?.frozen === true || managedCluster?.frozen === true,
+      });
 
-    return sessionMatchesSearch({
-      session,
-      latestReport,
-      recovery,
-      query: sessionSearch,
-    });
-  });
+      return sessionMatchesSearch({
+        session,
+        latestReport,
+        recovery,
+        query: sessionSearch,
+      });
+    })
+    .sort(
+      (left, right) =>
+        (pinnedSessionOrder.get(left.sessionId) ?? pinnedSessionIds.length) - (pinnedSessionOrder.get(right.sessionId) ?? pinnedSessionIds.length),
+    );
 
   const setSessionArchived = useCallback(
     async (sessionId: string, archived: boolean) => {
@@ -89,6 +131,8 @@ export function useSessionList({
     showArchivedSessions,
     setShowArchivedSessions,
     archivingSessionIds,
+    pinnedSessionIds,
+    toggleSessionPinned,
     runningSessions,
     archivedSessionCount,
     filteredSessions,

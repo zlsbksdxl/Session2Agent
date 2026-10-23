@@ -79,11 +79,11 @@ Gate A 关闭前执行：
   重复 dimension change 导致 `ResizeObserver` warning storm。修复后重启 clean Browser session
   并重复 panel/resize 操作，dev server 无新增 warning。
 - screenshots：
-  - `output/playwright/agent-graph-ui-shared-checkpoint/graph-wide.png`
-  - `output/playwright/agent-graph-ui-shared-checkpoint/graph-narrow.png`
-  - `output/playwright/agent-graph-ui-shared-checkpoint/graph-light.png`
-  - `output/playwright/agent-graph-ui-shared-checkpoint/loop-panel-wide.png`
-  - `output/playwright/agent-graph-ui-shared-checkpoint/production-embed.png`
+  - `outputs/playwright/agent-graph-ui-shared-checkpoint/graph-wide.png`
+  - `outputs/playwright/agent-graph-ui-shared-checkpoint/graph-narrow.png`
+  - `outputs/playwright/agent-graph-ui-shared-checkpoint/graph-light.png`
+  - `outputs/playwright/agent-graph-ui-shared-checkpoint/loop-panel-wide.png`
+  - `outputs/playwright/agent-graph-ui-shared-checkpoint/production-embed.png`
 
 ## Deferred Desktop migration
 

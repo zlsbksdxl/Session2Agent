@@ -51,7 +51,7 @@ export function ThreadGoalProgressRow({
     <div className="app-region-no-drag mb-2 flex items-center gap-2 rounded-lg border border-term-accent-hi/25 bg-term-accent/[0.055] px-2.5 py-2">
       <Target className="size-3.5 shrink-0 text-term-accent-hi" />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.07em] text-term-accent-hi">
+        <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.07em] text-term-accent-hi">
           <span>{goalStatusLabels[goal.status]}</span>
           <span className="normal-case tracking-normal text-term-faint">{usage}</span>
         </div>

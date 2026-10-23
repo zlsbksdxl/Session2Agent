@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Bot, Check, ChevronDown, ChevronRight, Copy, Plus, RefreshCw, ShieldCheck, TerminalSquare } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, ChevronRight, Copy, Plus, RefreshCw, ShieldCheck, TerminalSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { capitalizeFirst } from '@/lib/format';
 import { providerOption, providerOptions } from '@/lib/provider-catalog';
 import type { ProviderSetupSnapshot, ProviderSetupStatus } from '@/shared/graph-state';
 import type { ProviderInstance, ProviderKind } from '@/shared/provider-runtime';
@@ -112,6 +113,7 @@ export function AgentSettingsPanel({
   savingProviderInstanceId,
   providerInstanceError,
   onSaveProviderInstance,
+  onBack,
 }: {
   runtimeApi: RuntimeApi | undefined;
   isRuntimeAvailable: boolean;
@@ -122,6 +124,7 @@ export function AgentSettingsPanel({
   savingProviderInstanceId?: string;
   providerInstanceError?: string;
   onSaveProviderInstance: (instance: ProviderInstance) => Promise<boolean | void> | boolean | void;
+  onBack: () => void;
 }) {
   const [statuses, setStatuses] = useState<StatusByInstance>(() => snapshotStatuses(providerSetupSnapshots, providerInstances, cwd));
   const [loading, setLoading] = useState<LoadingByInstance>({});
@@ -262,19 +265,21 @@ export function AgentSettingsPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-ink">
       <header className="app-region-drag shrink-0 border-b border-ink-line bg-background/85 px-6 pb-4 pt-6 backdrop-blur">
+        <div className="app-region-no-drag mx-auto w-full max-w-4xl">
+          <Button variant="ghost" size="sm" className="-ml-2 mb-4 gap-1.5 text-muted-foreground" onClick={onBack}>
+            <ArrowLeft className="size-3.5" aria-hidden="true" />
+            Back to workspace
+          </Button>
+        </div>
         <div className="app-region-no-drag mx-auto flex w-full max-w-4xl items-start justify-between gap-5">
           <div>
-            <div className="mb-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-term-cyan">
-              <Bot className="size-3.5" />
-              Settings
-            </div>
             <h2 className="text-xl font-semibold text-term-name">Agent providers</h2>
             <p className="mt-1 max-w-2xl text-sm leading-5 text-term-dim">
               looperators reuses coding agents installed and authenticated on this computer. Profiles, readiness snapshots, and real chats share one resolved launch configuration.
             </p>
           </div>
           <Button
-            className="shrink-0 font-mono text-[11px] uppercase tracking-[0.08em]"
+            className="shrink-0 font-mono text-[11px] tracking-[0.08em]"
             variant="outline"
             size="sm"
             disabled={!runtimeApi || anySafeLoading}
@@ -307,7 +312,7 @@ export function AgentSettingsPanel({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 font-mono text-[10.5px] uppercase tracking-[0.07em]"
+                    className="h-8 font-mono text-[10.5px] tracking-[0.07em]"
                     disabled={!runtimeApi || creatingKind === provider.id}
                     onClick={() => void addProfile(provider.id)}
                   >
@@ -329,7 +334,7 @@ export function AgentSettingsPanel({
                         <div className="min-w-0 flex-1">
                           <div className="flex min-w-0 items-baseline gap-2">
                             <h4 className="truncate text-sm font-semibold text-term-name">{instance.label}</h4>
-                            <span className={cn('shrink-0 font-mono text-[10px] uppercase tracking-[0.09em]', readinessTone(status))}>
+                            <span className={cn('shrink-0 font-mono text-[10px] tracking-[0.09em]', readinessTone(status))}>
                               {isLoading ? 'Checking…' : readinessLabel(status)}
                             </span>
                           </div>
@@ -344,11 +349,11 @@ export function AgentSettingsPanel({
                           {error ? <p className="mt-1.5 text-[11px] leading-4 text-term-rose">{error}</p> : null}
                         </div>
                         <div className="flex shrink-0 items-center gap-1.5">
-                          <Button variant="outline" size="sm" className="h-8 font-mono text-[10.5px] uppercase tracking-[0.07em]" disabled={!runtimeApi || isLoading} onClick={() => void refresh(instance, true)}>
+                          <Button variant="outline" size="sm" className="h-8 font-mono text-[10.5px] tracking-[0.07em]" disabled={!runtimeApi || isLoading} onClick={() => void refresh(instance, true)}>
                             <RefreshCw className={cn('size-3.5', isLoading && 'animate-spin')} />
                             Test
                           </Button>
-                          <Button variant={isExpanded ? 'secondary' : 'ghost'} size="sm" className="h-8 font-mono text-[10.5px] uppercase tracking-[0.07em]" aria-expanded={isExpanded} onClick={() => setExpandedInstanceId(isExpanded ? undefined : instance.providerInstanceId)}>
+                          <Button variant={isExpanded ? 'secondary' : 'ghost'} size="sm" className="h-8 font-mono text-[10.5px] tracking-[0.07em]" aria-expanded={isExpanded} onClick={() => setExpandedInstanceId(isExpanded ? undefined : instance.providerInstanceId)}>
                             {isExpanded ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
                             Configure
                           </Button>
@@ -373,9 +378,9 @@ export function AgentSettingsPanel({
                           <div className="rounded-lg border border-ink-line bg-background/35 px-2.5 py-2">
                             <div className="mb-2 flex items-center gap-2">
                               <ShieldCheck className="size-3.5 text-term-cyan" />
-                              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-term-dim2">Detection details</span>
+                              <span className="font-mono text-[10px] tracking-[0.12em] text-term-dim2">Detection details</span>
                               {status ? (
-                                <Button variant="ghost" size="sm" className="ml-auto h-7 font-mono text-[9.5px] uppercase tracking-[0.06em]" onClick={() => void copyDiagnostics(status)}>
+                                <Button variant="ghost" size="sm" className="ml-auto h-7 font-mono text-[9.5px] tracking-[0.06em]" onClick={() => void copyDiagnostics(status)}>
                                   {copiedInstanceId === instance.providerInstanceId ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
                                   {copiedInstanceId === instance.providerInstanceId ? 'Copied' : 'Copy safe diagnostics'}
                                 </Button>
@@ -391,7 +396,7 @@ export function AgentSettingsPanel({
                               <div className="space-y-1.5">
                                 {status.checks.map((check) => (
                                   <div key={check.id} className="grid grid-cols-[72px_minmax(0,1fr)] gap-2 rounded-md bg-ink px-2 py-1.5 font-mono text-[11px] leading-4">
-                                    <span className={cn('self-start rounded border px-1 py-0.5 text-center text-[9.5px] uppercase tracking-[0.06em]', providerSetupCheckClassName(check.status))}>{check.status}</span>
+                                    <span className={cn('self-start rounded border px-1 py-0.5 text-center text-[9.5px] tracking-[0.06em]', providerSetupCheckClassName(check.status))}>{capitalizeFirst(check.status)}</span>
                                     <span className="min-w-0">
                                       <span className="block text-term-name">{check.label}</span>
                                       <span className="block break-words text-term-dim">{check.message}</span>

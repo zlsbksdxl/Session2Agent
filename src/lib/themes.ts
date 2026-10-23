@@ -6,7 +6,7 @@
  * The mode axis (`.dark` class) is independent and orthogonal.
  */
 
-export type ThemeId = 'lime' | 'inkstone' | 'harbor' | 'ember';
+export type ThemeId = 'default' | 'lime' | 'inkstone' | 'harbor' | 'ember' | 'white';
 
 export interface ThemeDefinition {
   id: ThemeId;
@@ -17,6 +17,12 @@ export interface ThemeDefinition {
 }
 
 export const themes: ThemeDefinition[] = [
+  {
+    id: 'default',
+    label: 'Default',
+    description: 'A white base palette for gradual color customization.',
+    preview: { light: ['#ffffff', '#27272a'], dark: ['#101012', '#f4f4f5'] },
+  },
   {
     id: 'lime',
     label: 'Lime',
@@ -41,9 +47,15 @@ export const themes: ThemeDefinition[] = [
     description: 'Warm charcoal with a matte amber accent; a dimmed CRT without the glare.',
     preview: { light: ['#f3f0ea', '#9a6a23'], dark: ['#1b1917', '#d0a468'] },
   },
+  {
+    id: 'white',
+    label: 'White',
+    description: 'Clean white surfaces with neutral black-and-gray controls.',
+    preview: { light: ['#ffffff', '#27272a'], dark: ['#101012', '#f4f4f5'] },
+  },
 ];
 
-export const defaultThemeId: ThemeId = 'lime';
+export const defaultThemeId: ThemeId = 'default';
 
 export const themeStorageKey = 'orrery.theme.v1';
 

@@ -181,6 +181,31 @@ function threadStartParams({ cwd, runtimeSettings, mcpHandoff }) {
   }
 }
 
+export async function resumeCodexThreadWithArchiveRecovery(
+  client,
+  params,
+  requestOptions = { timeoutMs: 60000 },
+) {
+  try {
+    return await client.request('thread/resume', params, requestOptions)
+  } catch (error) {
+    const threadId = params?.threadId
+    const archivedMessage = `session ${threadId} is archived. Run \`codex unarchive ${threadId}\` to unarchive it first.`
+    if (
+      typeof threadId !== 'string' ||
+      threadId.trim().length === 0 ||
+      (error?.message !== archivedMessage &&
+        error?.message !== `Codex thread/resume failed: ${archivedMessage}`)
+    ) {
+      throw error
+    }
+    // Only a user-requested continuation cancels this thread's archive state.
+    // A second resume failure is propagated without another recovery attempt.
+    await client.request('thread/unarchive', { threadId }, requestOptions)
+    return client.request('thread/resume', params, requestOptions)
+  }
+}
+
 export function codexThreadForkParams({
   cwd,
   runtimeSettings,
@@ -566,8 +591,8 @@ export class CodexAppServerRun extends EventEmitter {
             { timeoutMs: 90000 }
           )
         : this.#threadId
-          ? await this.#client.request(
-            'thread/resume',
+          ? await resumeCodexThreadWithArchiveRecovery(
+            this.#client,
             {
               ...threadStartParams({
                 cwd,

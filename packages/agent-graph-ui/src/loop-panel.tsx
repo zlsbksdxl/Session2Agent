@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { AgentGraphFollowUpIntent, AgentGraphIssue, AgentGraphModel } from './graph-model';
 import { statusTone } from './graph-model';
 
+const issueSeverityLabels = { info: 'Info', warn: 'Warn', error: 'Error' };
+
 function IssueList({ issues }: { issues: AgentGraphIssue[] }) {
   return (
     <ul className="lag-issue-list">
       {issues.map((issue, index) => (
         <li key={`${issue.file ?? ''}:${issue.line ?? ''}:${issue.message}:${index}`}>
-          <strong>{issue.severity ?? 'issue'}</strong>
+          <strong>{issue.severity ? issueSeverityLabels[issue.severity] : 'Issue'}</strong>
           <span>{issue.message}</span>
           {issue.file ? <small>{issue.file}{issue.line ? `:${issue.line}` : ''}</small> : null}
         </li>

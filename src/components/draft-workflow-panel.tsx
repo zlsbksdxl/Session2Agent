@@ -53,7 +53,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
       <header className="flex items-center gap-2 border-b border-border px-3 py-2.5">
         <UserRoundPlus className="size-3.5 text-violet-500" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em]">Draft workflow</h2>
+          <h2 className="text-[11px] font-semibold tracking-[0.12em]">Draft workflow</h2>
           <p className="text-[10px] text-muted-foreground">Configure first. No Agent runs until Run workflow.</p>
         </div>
         <Button
@@ -112,7 +112,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
             {selectedNewEndpoint ? (
               <>
                 <label className="grid gap-1">
-                  <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Agent name</span>
+                  <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Agent name</span>
                   <input className={fieldClass} value={selectedNewEndpoint.label} onChange={(event) => updateNewEndpoint({ label: event.target.value })} />
                 </label>
                 <AgentRuntimeFields
@@ -140,7 +140,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
                   }
                 />
                 <label className="grid gap-1">
-                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                  <span className="flex items-center gap-1 text-[10px] tracking-[0.1em] text-muted-foreground">
                     <GitBranch className="size-3" /> Workspace
                   </span>
                   <input
@@ -161,7 +161,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
                 ) : null}
                 <div className="grid grid-cols-2 gap-2">
                   <label className="grid gap-1">
-                    <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Work mode</span>
+                    <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Work mode</span>
                     <select
                       className={fieldClass}
                       value={selectedNewEndpoint.workMode}
@@ -173,7 +173,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
                     </select>
                   </label>
                   <label className="grid gap-1">
-                    <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Base branch</span>
+                    <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Base branch</span>
                     <input
                       className={fieldClass}
                       value={selectedNewEndpoint.branch ?? ''}
@@ -183,7 +183,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
                   </label>
                 </div>
                 <label className="grid gap-1">
-                  <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Prompt</span>
+                  <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Prompt</span>
                   <textarea
                     className={textAreaClass}
                     value={selectedNewEndpoint.prompt}
@@ -208,7 +208,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
               </Button>
             </div>
             <label className="grid gap-1">
-              <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Relationship</span>
+              <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Relationship</span>
               <select
                 className={fieldClass}
                 value={selectedRelation.kind}
@@ -232,7 +232,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
               </select>
             </label>
             <label className="grid gap-1">
-              <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              <span className="text-[10px] tracking-[0.1em] text-muted-foreground">
                 {selectedRelation.kind === 'review-loop' ? 'Review instruction' : 'Activation note'}
               </span>
               <textarea
@@ -274,7 +274,7 @@ export function DraftWorkflowPanel({ runtimeState, draft }: { runtimeState: Grap
 
         {selectedIssues.length > 0 ? (
           <div className="mt-3 rounded-lg border border-amber-500/35 bg-amber-500/10 p-2.5">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-amber-700 dark:text-amber-300">Before Run</div>
+            <div className="text-[10px] font-semibold tracking-[0.1em] text-amber-700 dark:text-amber-300">Before run</div>
             <ul className="mt-1.5 space-y-1 text-[10.5px] leading-4 text-muted-foreground">
               {selectedIssues.map((issue) => (
                 <li key={`${issue.target}:${issue.id ?? 'graph'}:${issue.field}`}>• {issue.message}</li>

@@ -23,9 +23,9 @@ export function CmdLine({ command, flag, trailing, className }: { command: strin
   );
 }
 
-/** Mono uppercase field label. */
+/** Mono field label. */
 export function TermLabel({ children, className }: { children: ReactNode; className?: string }) {
-  return <span className={cn('font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground', className)}>{children}</span>;
+  return <span className={cn('font-mono text-[10px] tracking-[0.14em] text-muted-foreground', className)}>{children}</span>;
 }
 
 /** Small mono chip on the chrome (policy flags, counts). */
@@ -55,4 +55,4 @@ export const termInputCls =
 export const termTextareaCls =
   'w-full resize-y rounded-md border border-ink-line bg-ink px-3 py-2.5 font-mono text-[13px] leading-6 text-term-name outline-none transition placeholder:text-term-faint focus:border-term-accent-hi/55 focus:ring-1 focus:ring-term-accent-hi/25 disabled:opacity-50';
 
-export const termActionBtnCls = 'min-w-0 justify-start font-mono text-[11px] uppercase tracking-[0.06em]';
+export const termActionBtnCls = 'min-w-0 justify-start font-mono text-[11px] tracking-[0.06em]';

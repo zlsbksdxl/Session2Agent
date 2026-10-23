@@ -37,7 +37,7 @@ export function sessionMarker(status: SessionStatus, isSelected: boolean, role: 
   }
 }
 
-export const statePillBase = 'shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.1em]';
+export const statePillBase = 'shrink-0 rounded-full border px-2 py-0.5 text-[10px] tracking-[0.1em]';
 
 export function statePillCls(status: SessionStatus, role: 'worker' | 'master') {
   if (role === 'master') return 'border-term-amber/30 bg-term-amber/10 text-term-amber';

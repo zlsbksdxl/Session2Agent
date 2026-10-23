@@ -1,3 +1,7 @@
+export function capitalizeFirst(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function formatFileSize(size: number) {
   if (size < 1024) {
     return `${size} B`;

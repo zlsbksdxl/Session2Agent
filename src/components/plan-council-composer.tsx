@@ -157,7 +157,7 @@ export function PlanCouncilComposer({
         <textarea className={textAreaClass} value={objective} placeholder="Compare approaches for…" onChange={(event) => setObjective(event.target.value)} />
       </label>
       <label className="block space-y-1">
-        <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">Workspace · read-only</span>
+        <span className="text-[10px] tracking-[0.1em] text-muted-foreground">Workspace · read-only</span>
         <input className={fieldClass} value={cwd} onChange={(event) => setCwd(event.target.value)} />
       </label>
       <label className="block space-y-1">
@@ -262,7 +262,7 @@ export function PlanCouncilComposer({
         </select>
       </label>
       <section className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-3 text-sm leading-6" data-testid="comparison-preview">
-        <p className="font-semibold uppercase tracking-[0.1em]">Preview</p>
+        <p className="font-semibold tracking-[0.1em]">Preview</p>
         <p className="mt-1 text-muted-foreground">
           {planners.length} independent proposals → {planners.length} peer reviews → one recommendation.
         </p>
@@ -302,7 +302,7 @@ export function PlanCouncilComposer({
       </section>
 
       <Button
-        className="h-8 w-full font-mono text-[10.5px] uppercase tracking-[0.06em]"
+        className="h-8 w-full font-mono text-[10.5px] tracking-[0.06em]"
         size="sm"
         disabled={!runtimeApi || !canRun || isStarting}
         onClick={() => void start()}

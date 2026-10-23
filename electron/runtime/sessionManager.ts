@@ -45,6 +45,7 @@ import { WorkspaceService } from './workspace/workspaceService.js'
 import {
   defaultProviderInstanceForKind,
   normalizeProviderInstance,
+  providerConfig,
 } from './providers/providerConfigNormalize.js'
 import {
   loadLegacyJsonState,
@@ -75,6 +76,16 @@ import {
   type RuntimeRun,
 } from './sessions/sessionRuntimeController.js'
 import { SessionCommandRuntime } from './sessions/sessionCommandRuntime.js'
+import { NativeSessionCatalog } from './sessions/nativeSessionCatalog.js'
+import { nativeSessionSourceKey } from './sessions/nativeSessionSource.js'
+import { resolveProviderLaunch } from './providers/providerLaunch.js'
+import type {
+  NativeSessionSummary,
+  ListNativeSessionsInput,
+  ListNativeSessionsResult,
+  NativeSessionDetails,
+  ReadNativeSessionInput,
+} from '../../shared/native-session.js'
 import {
   normalizeReportPayload,
   reportSummary,
@@ -140,6 +151,7 @@ export class RuntimeSessionManager {
   #restartInterruptedSessionIds: string[] = []
   #bridge: MembraneBridge
   #providerService: ProviderService
+  #nativeSessionCatalog: Pick<NativeSessionCatalog, 'list' | 'read'>
   #planCouncilInFlight = new Set<string>()
   // Concurrent-compile guards for workflow composers (see workflows/).
   #goalLoopInFlight = new Set<string>()
@@ -330,6 +342,7 @@ export class RuntimeSessionManager {
   })
   #sessionCommands = new SessionCommandRuntime({
     state: () => this.#state,
+    readNativeSession: (input) => this.readNativeSession(input),
     runs: () => this.#runs,
     runContext: () => this.#runContext,
     channelStore: () => this.#channelStore,
@@ -425,6 +438,8 @@ export class RuntimeSessionManager {
     recover_collaboration_sessions: (input, ctx) => this.#collaboration.recover(input, ctx as CollaborationContext),
     create_session: (input, ctx) =>
       this.#sessionCommands.cmdCreateSession(input, ctx),
+    import_native_session: (input, ctx) =>
+      this.#sessionCommands.cmdImportNativeSession(input, ctx),
     fork_session: (input, ctx) =>
       this.#sessionCommands.cmdForkSession(input, ctx),
     resume_session: (input, ctx) =>
@@ -541,11 +556,13 @@ export class RuntimeSessionManager {
     emit,
     snapshotPersistDelayMs,
     providerAdapters,
+    nativeSessionCatalog,
     workflowDeploymentCrashAfterStage,
     workflowDeploymentCrashAfterResourceCreate = false,
     controlCommandCrashBeforeEffectDrain = false,
     controlCommandCommitDelayMs,
   }: JsonRecord = {}) {
+    this.#nativeSessionCatalog = nativeSessionCatalog ?? new NativeSessionCatalog()
     this.#storageFile =
       typeof storageFile === 'string' && storageFile.length > 0
         ? storageFile
@@ -955,6 +972,72 @@ export class RuntimeSessionManager {
 
   async createSession(input: JsonRecord = {}) {
     return this.#sessionCommands.createSession(input)
+  }
+
+  #nativeSessionRequest(input: JsonRecord, requireSessionId: boolean) {
+    const providerInstanceId = optionalTrimmedString(input.providerInstanceId)
+    if (!providerInstanceId) throw new Error('A provider profile is required.')
+    const provider = providerConfig({ providerInstanceId }, this.#readState().providerInstances)
+    if (provider.providerKind !== 'codex' && provider.providerKind !== 'claude-code') {
+      throw new Error('Native session import supports Codex and Claude profiles only.')
+    }
+    const nativeSessionId = optionalTrimmedString(input.nativeSessionId)
+    if (requireSessionId && (!nativeSessionId || !/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,255}$/.test(nativeSessionId))) {
+      throw new Error('A valid native session ID is required.')
+    }
+    return { providerInstanceId, nativeSessionId, providerKind: provider.providerKind }
+  }
+
+  #nativeSessionWithImport(summary: NativeSessionSummary, profileSourceKeys = new Map<string, string>()): NativeSessionSummary {
+    const state = this.#readState()
+    const existing = Object.values(state.sessions as JsonRecord).find((session) => {
+      if (session.providerKind !== summary.providerKind) return false
+      if (session.nativeSessionOrigin) {
+        return session.nativeSessionOrigin.sourceKey === summary.sourceKey &&
+          session.nativeSessionOrigin.nativeSessionId === summary.nativeSessionId
+      }
+      if (session.providerSessionId !== summary.nativeSessionId && session.backendSessionId !== summary.nativeSessionId) return false
+      const profile = state.providerInstances.find((instance) =>
+        instance.providerInstanceId === session.providerInstanceId && instance.kind === summary.providerKind,
+      )
+      if (!profile) return false
+      let sourceKey = profileSourceKeys.get(profile.providerInstanceId)
+      if (!sourceKey) {
+        sourceKey = nativeSessionSourceKey(summary.providerKind, resolveProviderLaunch(summary.providerKind, profile).env)
+        profileSourceKeys.set(profile.providerInstanceId, sourceKey)
+      }
+      return sourceKey === summary.sourceKey
+    })
+    return { ...summary, importedSessionId: existing?.sessionId }
+  }
+
+  async listNativeSessions(input: JsonRecord = {}): Promise<ListNativeSessionsResult> {
+    const request = this.#nativeSessionRequest(input, false)
+    const result = await this.#nativeSessionCatalog.list(
+      { ...input, providerInstanceId: request.providerInstanceId } as ListNativeSessionsInput,
+      this.#readState().providerInstances,
+    )
+    const profileSourceKeys = new Map<string, string>()
+    return { ...result, sessions: result.sessions.map((session) => this.#nativeSessionWithImport(session, profileSourceKeys)) }
+  }
+
+  async readNativeSession(input: JsonRecord = {}): Promise<NativeSessionDetails> {
+    const request = this.#nativeSessionRequest(input, true)
+    const result = await this.#nativeSessionCatalog.read(
+      { providerInstanceId: request.providerInstanceId, nativeSessionId: request.nativeSessionId } as ReadNativeSessionInput,
+      this.#readState().providerInstances,
+    )
+    if (result.session.providerKind !== request.providerKind ||
+        result.session.providerInstanceId !== request.providerInstanceId ||
+        result.session.nativeSessionId !== request.nativeSessionId ||
+        !nonEmptyString(result.session.sourceKey)) {
+      throw new Error('Native session metadata does not match the requested profile and session.')
+    }
+    return { ...result, session: this.#nativeSessionWithImport(result.session) }
+  }
+
+  importNativeSession(input: JsonRecord = {}) {
+    return this.dispatchCommand({ kind: 'import_native_session', actor: { kind: 'human' }, input })
   }
 
   forkSession(input: JsonRecord = {}) {

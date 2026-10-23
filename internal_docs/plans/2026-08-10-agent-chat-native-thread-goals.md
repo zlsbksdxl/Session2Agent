@@ -192,7 +192,7 @@ IPC/preload/runtime-client/HTTP 只增加两条 typed 方法/route，全部汇�
 4. 断言 objective/usage 投影、目标文件、session 终态；
 5. 断言初始 goal set 路径没有客户端手发普通 `turn/start`；
 6. 同一或独立短场景验证 pause → resume → clear；
-7. 保存 transcript、events、graph-state 和 result 到 `output/acceptance/<run-id>/`。
+7. 保存 transcript、events、graph-state 和 result 到 `outputs/acceptance/<run-id>/`。
 
 先读失败 artifact 再修复、重跑，直到全部通过。
 

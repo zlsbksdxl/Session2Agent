@@ -12,7 +12,7 @@ export function RecoveryNotice({ state, compact }: { state?: RecoveryState; comp
 
   return (
     <div className={cn('rounded-lg border px-2.5 py-2 font-mono', recoveryToneClassName(state.tone))}>
-      <div className="flex min-w-0 items-center gap-1.5 text-[10.5px] uppercase tracking-[0.1em]">
+      <div className="flex min-w-0 items-center gap-1.5 text-[10.5px] tracking-[0.1em]">
         <TriangleAlert className="size-3 shrink-0" />
         <span className="truncate">{state.title}</span>
       </div>

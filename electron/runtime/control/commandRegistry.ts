@@ -37,6 +37,7 @@ export const kernelCommandPolicies = defineKernelCommandPolicies({
   collaboration_member_settled: { affectsControlVersion: false },
   recover_collaboration_sessions: { affectsControlVersion: false },
   create_session: { automaticallyJournaledWorkflow: true },
+  import_native_session: {},
   fork_session: { automaticallyJournaledWorkflow: true },
   resume_session: { automaticallyJournaledWorkflow: true },
   set_thread_goal: {},

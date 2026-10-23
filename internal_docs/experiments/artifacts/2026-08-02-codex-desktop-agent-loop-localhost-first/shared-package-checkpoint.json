@@ -55,10 +55,10 @@
     }
   ],
   "screenshots": [
-    "output/playwright/agent-graph-ui-shared-checkpoint/graph-wide.png",
-    "output/playwright/agent-graph-ui-shared-checkpoint/graph-narrow.png",
-    "output/playwright/agent-graph-ui-shared-checkpoint/graph-light.png",
-    "output/playwright/agent-graph-ui-shared-checkpoint/loop-panel-wide.png",
-    "output/playwright/agent-graph-ui-shared-checkpoint/production-embed.png"
+    "outputs/playwright/agent-graph-ui-shared-checkpoint/graph-wide.png",
+    "outputs/playwright/agent-graph-ui-shared-checkpoint/graph-narrow.png",
+    "outputs/playwright/agent-graph-ui-shared-checkpoint/graph-light.png",
+    "outputs/playwright/agent-graph-ui-shared-checkpoint/loop-panel-wide.png",
+    "outputs/playwright/agent-graph-ui-shared-checkpoint/production-embed.png"
   ]
 }

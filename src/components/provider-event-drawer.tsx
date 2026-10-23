@@ -2,7 +2,7 @@ import { Braces } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type AgentSession } from '@/shared/graph-state';
 import { type NativeProviderEvent, type ProviderRuntimeEvent } from '@/shared/provider-runtime';
-import { formatClockSeconds } from '@/lib/format';
+import { capitalizeFirst, formatClockSeconds } from '@/lib/format';
 
 export type ProviderEventEntry = {
   id: string;
@@ -63,8 +63,8 @@ export function ProviderEventDrawer({ session }: { session: AgentSession }) {
     <div className="border-b border-ink-line bg-ink px-3.5 py-3 font-mono">
       <div className="mb-2 flex items-center gap-2">
         <Braces className="size-3.5 text-term-cyan" />
-        <span className="text-[10px] uppercase tracking-[0.16em] text-term-dim2">diagnostics</span>
-        <span className="ml-auto text-[10.5px] tabular-nums text-term-faint">last {entries.length}</span>
+        <span className="text-[10px] tracking-[0.16em] text-term-dim2">Diagnostics</span>
+        <span className="ml-auto text-[10.5px] tabular-nums text-term-faint">Last {entries.length}</span>
       </div>
 
       {entries.length === 0 ? (
@@ -77,13 +77,13 @@ export function ProviderEventDrawer({ session }: { session: AgentSession }) {
                 <span className="inline-flex min-w-0 items-center gap-2 text-[11px]">
                   <span
                     className={cn(
-                      'rounded border px-1.5 py-0.5 uppercase tracking-[0.08em]',
+                      'rounded border px-1.5 py-0.5 tracking-[0.08em]',
                       entry.channel === 'native'
                         ? 'border-term-cyan/35 bg-term-cyan/10 text-term-cyan'
                         : 'border-term-accent/30 bg-term-accent/[0.08] text-term-accent',
                     )}
                   >
-                    {entry.channel}
+                    {capitalizeFirst(entry.channel)}
                   </span>
                   <span className="truncate text-term-name">{entry.title}</span>
                   <span className="ml-auto shrink-0 tabular-nums text-term-faint">{formatClockSeconds(entry.ts)}</span>

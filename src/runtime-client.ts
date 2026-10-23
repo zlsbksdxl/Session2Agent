@@ -74,6 +74,14 @@ import type {
 import type { PlanCouncil } from '@shared/plan-council';
 import type { ProviderInstance } from '@/shared/provider-runtime';
 import type { AppUpdateState } from '@shared/app-update';
+import type {
+  ImportNativeSessionInput,
+  ImportNativeSessionResult,
+  ListNativeSessionsInput,
+  ListNativeSessionsResult,
+  NativeSessionDetails,
+  ReadNativeSessionInput,
+} from '@shared/native-session';
 
 const defaultRuntimeUrl = 'http://127.0.0.1:48274';
 
@@ -117,6 +125,9 @@ export type RuntimeApi = {
   getProviderSetupStatus: (input: ProviderSetupStatusInput) => Promise<ProviderSetupStatus>;
   upsertProviderInstance: (input: UpsertProviderInstanceInput) => Promise<{ providerInstance: ProviderInstance; state: GraphState }>;
   chooseProjectFolder: () => Promise<{ canceled: boolean; cwd?: string }>;
+  listNativeSessions: (input: ListNativeSessionsInput) => Promise<ListNativeSessionsResult>;
+  readNativeSession: (input: ReadNativeSessionInput) => Promise<NativeSessionDetails>;
+  importNativeSession: (input: ImportNativeSessionInput) => Promise<ImportNativeSessionResult<GraphState>>;
   createSession: (input: CreateRuntimeSessionInput) => Promise<CreateRuntimeSessionResult>;
   forkSession: (input: ForkRuntimeSessionInput) => Promise<ForkRuntimeSessionResult>;
   resumeSession: (input: ResumeRuntimeSessionInput) => Promise<{ ok: boolean; state: GraphState }>;
@@ -352,6 +363,18 @@ class HttpRuntimeApi implements RuntimeApi {
 
   async chooseProjectFolder() {
     return { canceled: true };
+  }
+
+  listNativeSessions(input: ListNativeSessionsInput) {
+    return this.#post<ListNativeSessionsResult>('native-sessions/list', input);
+  }
+
+  readNativeSession(input: ReadNativeSessionInput) {
+    return this.#post<NativeSessionDetails>('native-sessions/read', input);
+  }
+
+  importNativeSession(input: ImportNativeSessionInput) {
+    return this.#post<ImportNativeSessionResult<GraphState>>('native-sessions/import', input);
   }
 
   createSession(input: CreateRuntimeSessionInput) {

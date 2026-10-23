@@ -16,7 +16,7 @@ function completeHandlers() {
 test('command registry is exhaustive and joins handlers to transaction policy', async () => {
   const registry = createKernelCommandRegistry(completeHandlers())
 
-  assert.equal(kernelCommandKinds.length, 83)
+  assert.equal(kernelCommandKinds.length, 84)
   assert.deepEqual(Object.keys(registry), kernelCommandKinds)
   assert.deepEqual(Object.keys(kernelCommandPolicies), kernelCommandKinds)
   assert.equal(Object.isFrozen(registry), true)

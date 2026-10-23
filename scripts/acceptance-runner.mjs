@@ -2,7 +2,7 @@
 // Real-scenario acceptance runner. Discovers tests/acceptance/*.scenario.mjs,
 // runs each against a fresh isolated runtime with REAL providers on the cheap
 // model preset, and persists artifacts (per-session transcripts, final graph
-// state, event timeline, result) under output/acceptance/<run-id>/ so failed
+// state, event timeline, result) under outputs/acceptance/<run-id>/ so failed
 // minute-scale runs can be diagnosed without re-running.
 //
 //   npm run acceptance:headless
@@ -23,7 +23,7 @@ import { modelPresetNotes, modelPresets } from './lib/model-presets.mjs'
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const defaultScenarioDir = path.join(repoRoot, 'tests', 'acceptance')
-const defaultOutDir = path.join(repoRoot, 'output', 'acceptance')
+const defaultOutDir = path.join(repoRoot, 'outputs', 'acceptance')
 const defaultScenarioTimeoutMs = 600_000
 const validProviders = ['claude-code', 'codex', 'grok']
 
@@ -160,7 +160,7 @@ async function runScenario(scenario, config) {
   const scenarioDir = path.join(config.runDir, scenario.name)
   fs.mkdirSync(scenarioDir, { recursive: true })
   // The workspace must live OUTSIDE the repo tree: real agents run git from
-  // their cwd, and a workspace under output/ would hand them the host repo's
+  // their cwd, and a workspace under outputs/ would hand them the host repo's
   // working tree (the loop reviewer would literally review this repo's
   // uncommitted diff). Left on disk after the run for diagnosis.
   const workDir = fs.mkdtempSync(

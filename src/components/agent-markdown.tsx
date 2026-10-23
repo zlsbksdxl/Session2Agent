@@ -6,6 +6,7 @@ import { Check, Copy } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { capitalizeFirst } from '@/lib/format';
 
 type AgentMarkdownProps = {
   text: string;
@@ -26,6 +27,23 @@ type TableElementProps = ComponentPropsWithoutRef<'table'> & { node?: unknown };
 const markdownFencePattern = /(^|\n)```(?:md|markdown)\s*\n([\s\S]*?)\n```(?=\n|$)/gi;
 
 const codeFenceLinePattern = /^\s*```/gm;
+
+const codeLanguageLabels: Record<string, string> = {
+  css: 'CSS',
+  html: 'HTML',
+  http: 'HTTP',
+  javascript: 'JavaScript',
+  js: 'JS',
+  json: 'JSON',
+  jsx: 'JSX',
+  sql: 'SQL',
+  ts: 'TS',
+  tsx: 'TSX',
+  typescript: 'TypeScript',
+  xml: 'XML',
+  yaml: 'YAML',
+  yml: 'YML',
+};
 
 const sanitizeSchema: SanitizeOptions = {
   ...defaultSchema,
@@ -112,7 +130,7 @@ function MarkdownPre({ children, node, ...props }: PreElementProps) {
   return (
     <div className="orrery-code-block">
       <div className="orrery-code-block__bar">
-        <span className="orrery-code-block__lang">{language ?? 'text'}</span>
+        <span className="orrery-code-block__lang">{codeLanguageLabels[language?.toLowerCase() ?? ''] ?? capitalizeFirst(language ?? 'text')}</span>
         <Button type="button" variant="ghost" size="icon-xs" className="h-6 w-6 text-term-dim hover:text-term-name" aria-label="Copy code" onClick={copyCode}>
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
         </Button>

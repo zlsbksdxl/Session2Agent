@@ -4,6 +4,11 @@
 // runtime-settings path, so headless runs never touch the developer's global
 // Claude Code / Codex configuration.
 export const modelPresets = {
+  'provider-default': {
+    'claude-code': {},
+    codex: {},
+    grok: {},
+  },
   cheap: {
     'claude-code': { model: 'claude-haiku-4-5' },
     codex: { model: 'gpt-5.3-codex-spark' },
@@ -15,6 +20,11 @@ export const modelPresets = {
 }
 
 export const modelPresetNotes = {
+  'provider-default': {
+    'claude-code': 'Uses the configured provider default model; no low-cost model is assumed.',
+    codex: 'Uses the configured provider default model; no low-cost model is assumed.',
+    grok: 'Uses the configured provider default model; no low-cost model is assumed.',
+  },
   cheap: {
     grok: 'Grok uses the provider default; no verified cheap model is claimed.',
   },

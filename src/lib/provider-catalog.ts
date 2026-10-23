@@ -168,8 +168,7 @@ export function reasoningEffortOptionsForKind(providerKind: ProviderKind) {
   return reasoningEffortOptions.filter((option) => supported.has(option.id));
 }
 
-// One-line summary of the runtime config (model · [effort] · mode), used in the
-// chat header so the effective agent setup is always visible.
+// One-line summary of the effective runtime config (model · [effort] · mode).
 
 export function runtimeConfigSummary(
   providerKind: ProviderKind,

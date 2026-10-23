@@ -64,7 +64,7 @@ The Playwright CLI opened the actual randomized localhost URL in Chromium. Verif
 
 Evidence:
 
-- [interactive-resumed-live-graph.png](../../../../output/playwright/agent-loop-localhost-checkpoint/interactive-resumed-live-graph.png)
+- [interactive-resumed-live-graph.png](../../../../outputs/playwright/agent-loop-localhost-checkpoint/interactive-resumed-live-graph.png)
 
 The first browser run exposed a real production-only failure: the bundle referenced the Node
 `process` global and fell back to semantic HTML. The fix defines `process.env.NODE_ENV=production`

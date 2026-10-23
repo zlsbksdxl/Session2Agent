@@ -15,7 +15,7 @@ import {
   type SessionTimelineEntry,
   type TurnDiffSummary,
 } from '@/shared/provider-runtime';
-import { formatFileSize, formatClock, formatClockSeconds } from '@/lib/format';
+import { capitalizeFirst, formatFileSize, formatClock, formatClockSeconds } from '@/lib/format';
 import { termActionBtnCls } from '@/components/terminal';
 import { requestKindLabels } from '@/components/runtime-interaction-panel';
 
@@ -26,9 +26,9 @@ const timelineRowContainmentStyle: CSSProperties = {
 
 export function assistantLabel(agent?: string) {
   const value = agent?.toLowerCase() ?? '';
-  if (value.includes('codex')) return 'codex';
-  if (value.includes('claude')) return 'claude';
-  return 'assistant';
+  if (value.includes('codex')) return 'Codex';
+  if (value.includes('claude')) return 'Claude';
+  return 'Assistant';
 }
 
 export function MessageAttachmentStrip({ attachments }: { attachments?: ChatAttachment[] }) {
@@ -59,8 +59,8 @@ export function MessageAttachmentStrip({ attachments }: { attachments?: ChatAtta
               {attachment.truncated ? ' · truncated' : ''}
             </span>
           </span>
-          <span className="rounded border border-ink-line bg-background/45 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.06em] text-term-dim2">
-            {attachment.kind}
+          <span className="rounded border border-ink-line bg-background/45 px-1.5 py-0.5 text-[10px] tracking-[0.06em] text-term-dim2">
+            {capitalizeFirst(attachment.kind)}
           </span>
         </div>
       ))}
@@ -151,6 +151,7 @@ export const ChatMessage = memo(
     const isStreaming = message.status === 'streaming';
     const hasText = message.content.trim().length > 0;
     const senderLabel = assistantLabel(agent);
+    const isCodex = providerKind === 'codex' || senderLabel === 'Codex';
     const isCommentary = message.phase === 'commentary';
     const forkReason = forkUnavailableReason({
       message,
@@ -171,14 +172,23 @@ export const ChatMessage = memo(
       >
         <div className="mb-1.5 flex items-center gap-2">
           {isUser ? (
-            <span className="text-[11px] text-term-faint">you</span>
+            <span className="text-[11px] text-term-faint">You</span>
           ) : (
             <>
-              <span className="size-1.5 rounded-full bg-term-green shadow-[0_0_8px_var(--term-green)]" />
-              <span className={cn('text-[11px]', isCommentary ? 'text-term-dim2' : 'text-term-emerald')}>{senderLabel}</span>
+              <span
+                className={cn(
+                  'size-1.5 rounded-full',
+                  isCodex
+                    ? 'bg-[#3941ff] shadow-[0_0_8px_#3941ff80] dark:bg-[#7a9dff] dark:shadow-[0_0_8px_#7a9dff80]'
+                    : 'bg-term-green shadow-[0_0_8px_var(--term-green)]',
+                )}
+              />
+              <span className={cn('text-[11px]', isCodex ? 'text-[#3941ff] dark:text-[#7a9dff]' : isCommentary ? 'text-term-dim2' : 'text-term-emerald')}>
+                {senderLabel}
+              </span>
             </>
           )}
-          {isStreaming ? <span className="text-[10px] text-term-amber">streaming</span> : null}
+          {isStreaming ? <span className="text-[10px] text-term-amber">Streaming</span> : null}
           <span className="ml-auto text-[10.5px] tabular-nums text-term-faint">{formatClockSeconds(message.ts)}</span>
         </div>
         {isUser ? (
@@ -254,7 +264,7 @@ export const ChatMessage = memo(
 export const TurnBoundaryRow = memo(function TurnBoundaryRow({ entry }: { entry: Extract<SessionTimelineEntry, { kind: 'turn' }> }) {
   return (
     <div className="border-t border-ink-line-2 px-4 py-2 font-mono first:border-t-0" style={timelineRowContainmentStyle}>
-      <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.12em] text-term-faint">
+      <div className="flex items-center gap-2 text-[10.5px] tracking-[0.12em] text-term-faint">
         <span className="h-px flex-1 bg-ink-line" />
         <span>{entry.status === 'started' ? 'Turn started' : 'Turn completed'}</span>
         <span className="text-term-dim2">{formatClock(entry.ts)}</span>
@@ -284,21 +294,21 @@ export const ActivityTimelineRow = memo(function ActivityTimelineRow({ activity 
         <span className="min-w-0 text-[12px] leading-6">
           <span className="font-medium text-term-accent">{command}</span>
           {activity.args ? <span className="ml-2 break-words text-term-dim">{activity.args}</span> : null}
-          <span className="ml-2 text-[11px] text-term-dim2">{activity.kind}</span>
+          <span className="ml-2 text-[11px] text-term-dim2">{capitalizeFirst(activity.kind)}</span>
         </span>
-        <span className="whitespace-nowrap text-[10.5px] uppercase tracking-[0.08em] text-term-faint">
-          {activity.startedAt ? formatClock(activity.startedAt) : activity.status}
+        <span className="whitespace-nowrap text-[10.5px] tracking-[0.08em] text-term-faint">
+          {activity.startedAt ? formatClock(activity.startedAt) : capitalizeFirst(activity.status)}
         </span>
       </div>
       {hasDetails ? (
         <details className="mt-1 pl-[26px]" open={activity.status === 'failed'}>
-          <summary className="cursor-pointer list-none text-[10.5px] uppercase tracking-[0.12em] text-term-dim2 transition hover:text-term-name">
-            details
+          <summary className="cursor-pointer list-none text-[10.5px] tracking-[0.12em] text-term-dim2 transition hover:text-term-name">
+            Details
           </summary>
           <div className="mt-1.5 grid gap-1 border-l border-ink-line pl-3">
             {activity.sublines?.slice(0, 8).map((line, index) => (
               <div key={`${line.key ?? index}:${line.value.slice(0, 20)}`} className="grid grid-cols-[72px_minmax(0,1fr)] gap-2 text-[11px] leading-4">
-                <span className="truncate text-term-dim2">{line.key ?? 'output'}</span>
+                <span className="truncate text-term-dim2">{line.key ?? 'Output'}</span>
                 <span className="truncate text-term-dim">{line.value}</span>
               </div>
             ))}
@@ -338,7 +348,7 @@ export const PlanTimelineRow = memo(function PlanTimelineRow({
     <div className="border-t border-ink-line-2 px-4 py-2.5 font-mono first:border-t-0" style={timelineRowContainmentStyle}>
       <div className="flex min-w-0 items-center gap-2">
         <ClipboardCheck className="size-3.5 shrink-0 text-term-cyan" />
-        <span className="text-[10px] uppercase tracking-[0.14em] text-term-cyan">plan</span>
+        <span className="text-[10px] tracking-[0.14em] text-term-cyan">Plan</span>
         <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-term-name">{plan.title ?? 'Proposed plan'}</span>
         <span className="shrink-0 text-[10.5px] tabular-nums text-term-faint">{formatClock(plan.updatedAt)}</span>
       </div>
@@ -348,7 +358,7 @@ export const PlanTimelineRow = memo(function PlanTimelineRow({
             <li key={item.id} className="grid grid-cols-[16px_minmax(0,1fr)_auto] items-start gap-2.5 text-[11.5px] leading-5">
               <span className="text-term-faint">{index === plan.items.length - 1 ? '└' : '├'}</span>
               <span className="min-w-0 break-words text-term-dim">{item.title}</span>
-              <span className="text-[10px] uppercase tracking-[0.08em] text-term-dim2">{item.status.replace('_', ' ')}</span>
+              <span className="text-[10px] tracking-[0.08em] text-term-dim2">{capitalizeFirst(item.status.replace('_', ' '))}</span>
             </li>
           ))}
         </ol>
@@ -388,16 +398,16 @@ export const RequestTimelineRow = memo(function RequestTimelineRow({
     <div className="border-t border-ink-line-2 px-4 py-2.5 font-mono first:border-t-0" style={timelineRowContainmentStyle}>
       <div className="flex min-w-0 items-center gap-2">
         <TriangleAlert className="size-3.5 shrink-0 text-term-amber" />
-        <span className="text-[10px] uppercase tracking-[0.14em] text-term-amber">{isUserInput ? 'input' : requestKindLabels[entry.request.kind]}</span>
+        <span className="text-[10px] tracking-[0.14em] text-term-amber">{isUserInput ? 'Input' : requestKindLabels[entry.request.kind]}</span>
         <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-term-name">{title}</span>
-        <span className="shrink-0 text-[10px] uppercase tracking-[0.08em] text-term-amber">{status}</span>
+        <span className="shrink-0 text-[10px] tracking-[0.08em] text-term-amber">{capitalizeFirst(status)}</span>
       </div>
       {body ? (
         <p className="mt-2 max-h-24 overflow-y-auto whitespace-pre-wrap break-words border-l border-ink-line pl-3 text-[11.5px] leading-5 text-term-dim">
           {body}
         </p>
       ) : null}
-      <div className="mt-1 pl-[26px] text-[10.5px] uppercase tracking-[0.08em] text-term-faint">{formatClock(entry.ts)}</div>
+      <div className="mt-1 pl-[26px] text-[10.5px] tracking-[0.08em] text-term-faint">{formatClock(entry.ts)}</div>
     </div>
   );
 });
@@ -410,7 +420,7 @@ export const TurnDiffTimelineRow = memo(function TurnDiffTimelineRow({ diff, onO
     <div className="border-t border-ink-line-2 px-4 py-2.5 font-mono first:border-t-0" style={timelineRowContainmentStyle}>
       <div className="flex min-w-0 items-center gap-2">
         <FileText className={cn('size-3.5 shrink-0', diffTone)} />
-        <span className={cn('text-[10px] uppercase tracking-[0.14em]', diffTone)}>diff</span>
+        <span className={cn('text-[10px] tracking-[0.14em]', diffTone)}>Diff</span>
         <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-term-name">Turn changed files</span>
         <span className="shrink-0 text-[10.5px] tabular-nums text-term-faint">{formatClock(diff.generatedAt)}</span>
       </div>
@@ -418,7 +428,7 @@ export const TurnDiffTimelineRow = memo(function TurnDiffTimelineRow({ diff, onO
         <p className="mt-2 whitespace-pre-wrap break-words border-l border-ink-line pl-3 text-[11.5px] leading-5 text-term-amber">{diff.error}</p>
       ) : (
         <>
-          <div className="mt-2 flex flex-wrap gap-3 pl-[26px] text-[10.5px] uppercase tracking-[0.08em]">
+          <div className="mt-2 flex flex-wrap gap-3 pl-[26px] text-[10.5px] tracking-[0.08em]">
             <span className="text-term-dim">{diff.totals.files} files</span>
             <span className="text-term-green">+{diff.totals.additions}</span>
             <span className="text-term-rose">-{diff.totals.deletions}</span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MessagesSquare, Play, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { capitalizeFirst } from '@/lib/format';
 import type { GraphState } from '@/shared/graph-state';
 import type { RuntimeApi } from '@/runtime-client';
 import type { PlanCouncil } from '@shared/plan-council';
@@ -47,8 +48,8 @@ export function PlanCouncilCard({
           <div className="truncate text-[11.5px] font-semibold text-foreground">Plan Council</div>
           <div className="truncate text-[10px] text-muted-foreground">{council.objective}</div>
         </div>
-        <span className="rounded-md border border-sky-500/25 px-1.5 py-0.5 text-[9.5px] uppercase text-sky-700 dark:text-sky-300">
-          {council.phase.replaceAll('-', ' ')}
+        <span className="rounded-md border border-sky-500/25 px-1.5 py-0.5 text-[9.5px] text-sky-700 dark:text-sky-300">
+          {capitalizeFirst(council.phase.replaceAll('-', ' '))}
         </span>
       </div>
       <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-muted-foreground">

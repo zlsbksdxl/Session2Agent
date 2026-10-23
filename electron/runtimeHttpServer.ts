@@ -324,6 +324,24 @@ function compileRoutes(
     },
     {
       method: 'POST',
+      pattern: /^\/api\/runtime\/native-sessions\/list$/,
+      handler: async (request) =>
+        runtime.listNativeSessions(await readJsonBody(request)),
+    },
+    {
+      method: 'POST',
+      pattern: /^\/api\/runtime\/native-sessions\/read$/,
+      handler: async (request) =>
+        runtime.readNativeSession(await readJsonBody(request)),
+    },
+    {
+      method: 'POST',
+      pattern: /^\/api\/runtime\/native-sessions\/import$/,
+      handler: async (request) =>
+        humanCommand('import_native_session', await readJsonBody(request)),
+    },
+    {
+      method: 'POST',
       pattern: /^\/api\/runtime\/sessions\/goal$/,
       handler: async (request) =>
         humanCommand('set_thread_goal', await readJsonBody(request)),

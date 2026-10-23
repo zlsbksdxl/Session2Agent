@@ -12,7 +12,7 @@ import {
   type Subscription,
   type UpdateNodePositionsInput,
 } from '@/shared/graph-state';
-import { compactId, formatClock } from '@/lib/format';
+import { capitalizeFirst, compactId, formatClock } from '@/lib/format';
 import { reportIssueCount, reportSummary } from '@/lib/reports';
 import { sessionLabel } from '@/lib/session-display';
 import { type ProviderKind } from '@shared/provider-metadata';
@@ -572,13 +572,13 @@ export function kernelEventLabel(type: string) {
 
 export function kernelActorLabel(state: GraphState, actor: KernelEvent['actor']) {
   if (actor.kind === 'master' || actor.kind === 'agent') {
-    return actor.ref ? sessionLabel(state, actor.ref) : actor.kind;
+    return actor.ref ? sessionLabel(state, actor.ref) : capitalizeFirst(actor.kind);
   }
   if (actor.kind === 'rule') {
     const subscription = actor.ref ? state.subscriptions?.[actor.ref] : undefined;
-    return subscription?.label ? `rule ${subscription.label}` : 'rule';
+    return subscription?.label ? `Rule ${subscription.label}` : 'Rule';
   }
-  return actor.kind;
+  return capitalizeFirst(actor.kind);
 }
 
 export function kernelEventSubject(state: GraphState, event: KernelEvent) {

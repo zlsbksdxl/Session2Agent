@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils';
 import { type RuntimeTerminal, type RuntimeTerminalChunk, type RuntimeTerminalStatus } from '@/shared/graph-state';
 import { statePillBase } from '@/lib/session-display';
-import { compactPath } from '@/lib/format';
+import { capitalizeFirst, compactPath } from '@/lib/format';
 
 export function terminalStatusPillCls(status: RuntimeTerminalStatus) {
   switch (status) {
@@ -209,14 +209,14 @@ export function SessionTerminalPanel({
     <section className="shrink-0 border-t border-ink-line-2 bg-ink font-mono" aria-label="Session terminal">
       <div className="flex h-9 min-w-0 items-center gap-2 border-b border-ink-line-2 px-3">
         <Terminal className="size-3.5 shrink-0 text-term-accent-hi" />
-        <span className="shrink-0 text-[10px] uppercase tracking-[0.16em] text-term-dim2">Terminal</span>
+        <span className="shrink-0 text-[10px] tracking-[0.16em] text-term-dim2">Terminal</span>
         <span className="min-w-0 flex-1 truncate text-[11px] text-term-dim" title={terminal.cwd}>
           {compactPath(terminal.cwd)}
         </span>
         {terminal.lastCommand ? (
-          <span className="hidden shrink-0 text-[10.5px] tabular-nums text-term-dim2 min-[1180px]:inline">exit {terminal.lastCommand.exitCode ?? 'n/a'}</span>
+          <span className="hidden shrink-0 text-[10.5px] tabular-nums text-term-dim2 min-[1180px]:inline">Exit {terminal.lastCommand.exitCode ?? 'n/a'}</span>
         ) : null}
-        <span className={cn(statePillBase, terminalStatusPillCls(terminal.status))}>{commandRunning ? 'running' : terminal.status}</span>
+        <span className={cn(statePillBase, terminalStatusPillCls(terminal.status))}>{commandRunning ? 'Running' : capitalizeFirst(terminal.status)}</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -224,7 +224,7 @@ export function SessionTerminalPanel({
               variant="ghost"
               size="icon-sm"
               disabled={terminal.chunks.length === 0}
-              aria-label="Clear Terminal"
+              aria-label="Clear terminal"
               onClick={onClear}
             >
               <RefreshCw className="size-3.5" />
@@ -234,7 +234,7 @@ export function SessionTerminalPanel({
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button className="size-7 shrink-0" variant="ghost" size="icon-sm" aria-label="Close Terminal" onClick={onClose}>
+            <Button className="size-7 shrink-0" variant="ghost" size="icon-sm" aria-label="Close terminal" onClick={onClose}>
               <X className="size-3.5" />
             </Button>
           </TooltipTrigger>
@@ -277,9 +277,9 @@ export function SessionTerminalPanel({
               <span>{afterCursor}</span>
             </span>
           ) : terminal.status === 'running' ? (
-            <span className="text-term-faint">{commandRunning ? 'command running...' : ''}</span>
+            <span className="text-term-faint">{commandRunning ? 'Command running...' : ''}</span>
           ) : (
-            <span className="text-term-faint">{terminal.status}</span>
+            <span className="text-term-faint">{capitalizeFirst(terminal.status)}</span>
           )}
         </pre>
       </div>

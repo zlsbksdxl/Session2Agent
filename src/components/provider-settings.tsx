@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Bot, Braces, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { capitalizeFirst } from '@/lib/format';
 import { TermLabel, termInputCls, termTextareaCls } from '@/components/terminal';
 import { type ProviderSetupStatus } from '@/shared/graph-state';
 import { type ProviderInstance, type ProviderKind } from '@/shared/provider-runtime';
@@ -91,7 +92,7 @@ export function ProviderInstanceSettingsPanel({
     <div className="rounded-lg border border-ink-line bg-background/35 px-2.5 py-2">
       <div className="mb-2 flex min-w-0 items-center gap-2">
         <Bot className="size-3.5 shrink-0 text-term-accent-hi" />
-        <span className="min-w-0 flex-1 truncate text-[10px] uppercase tracking-[0.12em] text-term-dim2">Provider profile</span>
+        <span className="min-w-0 flex-1 truncate text-[10px] tracking-[0.12em] text-term-dim2">Provider profile</span>
         <span className="truncate text-[10.5px] text-term-faint" title={instance.providerInstanceId}>
           {instance.providerInstanceId}
         </span>
@@ -105,12 +106,12 @@ export function ProviderInstanceSettingsPanel({
           </div>
         ) : null}
         <label className="grid gap-1">
-          <TermLabel>label</TermLabel>
+          <TermLabel>Label</TermLabel>
           <input className={termInputCls} value={label} disabled={disabled || isSaving} onChange={(event) => setLabel(event.target.value)} />
         </label>
 
         <label className="grid gap-1">
-          <TermLabel>binary path</TermLabel>
+          <TermLabel>Binary path</TermLabel>
           <input
             className={termInputCls}
             value={binaryPath}
@@ -122,7 +123,7 @@ export function ProviderInstanceSettingsPanel({
 
         <div className={cn('grid grid-cols-1 gap-2', providerKind === 'codex' && 'min-[420px]:grid-cols-2')}>
           <label className="grid gap-1">
-            <TermLabel>home path</TermLabel>
+            <TermLabel>Home path</TermLabel>
             <input
               className={termInputCls}
               value={homePath}
@@ -134,7 +135,7 @@ export function ProviderInstanceSettingsPanel({
 
           {providerKind === 'codex' ? (
             <label className="grid gap-1">
-              <TermLabel>shadow home</TermLabel>
+              <TermLabel>Shadow home</TermLabel>
               <input
                 className={termInputCls}
                 value={shadowHomePath}
@@ -147,7 +148,7 @@ export function ProviderInstanceSettingsPanel({
         </div>
 
         <label className="grid gap-1">
-          <TermLabel>launch args</TermLabel>
+          <TermLabel>Launch args</TermLabel>
           <textarea
             className={cn(termTextareaCls, 'min-h-16 resize-y text-[11.5px] leading-5')}
             value={launchArgs}
@@ -158,7 +159,7 @@ export function ProviderInstanceSettingsPanel({
         </label>
 
         <label className="grid gap-1">
-          <TermLabel>environment (non-secret)</TermLabel>
+          <TermLabel>Environment (non-secret)</TermLabel>
           <textarea
             className={cn(termTextareaCls, 'min-h-16 resize-y text-[11.5px] leading-5')}
             value={envText}
@@ -174,7 +175,7 @@ export function ProviderInstanceSettingsPanel({
         ) : null}
 
         <Button
-          className="h-8 justify-center font-mono text-[11px] uppercase tracking-[0.08em]"
+          className="h-8 justify-center font-mono text-[11px] tracking-[0.08em]"
           size="sm"
           disabled={disabled || isSaving || Boolean(envError)}
           onClick={() =>
@@ -231,14 +232,14 @@ export function ProviderSetupDiagnostics({
     <div className="border-b border-ink-line bg-ink px-3.5 py-3 font-mono">
       <div className="mb-2 flex items-center gap-2">
         <Braces className="size-3.5 text-term-cyan" />
-        <span className="text-[10px] uppercase tracking-[0.16em] text-term-dim2">Provider setup</span>
+        <span className="text-[10px] tracking-[0.16em] text-term-dim2">Provider setup</span>
         <span
           className={cn(
-            'ml-auto rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.08em]',
+            'ml-auto rounded border px-1.5 py-0.5 text-[10px] tracking-[0.08em]',
             isRuntimeAvailable ? 'border-term-green/30 bg-term-green/10 text-term-green' : 'border-term-rose/30 bg-term-rose/10 text-term-rose',
           )}
         >
-          {isRuntimeAvailable ? 'runtime ready' : 'runtime unavailable'}
+          {isRuntimeAvailable ? 'Runtime ready' : 'Runtime unavailable'}
         </span>
       </div>
 
@@ -268,7 +269,7 @@ export function ProviderSetupDiagnostics({
 
         {setupStatus?.models ? (
           <div className="rounded-lg border border-ink-line bg-background/35 px-2.5 py-2">
-            <div className="mb-1 text-[10px] uppercase tracking-[0.12em] text-term-dim2">Discovered models</div>
+            <div className="mb-1 text-[10px] tracking-[0.12em] text-term-dim2">Discovered models</div>
             <div className="space-y-1 text-[11.5px] leading-5">
               <div className="flex gap-2">
                 <span className="w-20 shrink-0 text-term-dim2">source</span>
@@ -297,18 +298,18 @@ export function ProviderSetupDiagnostics({
         ) : null}
 
         <div className="rounded-lg border border-ink-line bg-background/35 px-2.5 py-2">
-          <div className="mb-1 text-[10px] uppercase tracking-[0.12em] text-term-dim2">Setup checks</div>
+          <div className="mb-1 text-[10px] tracking-[0.12em] text-term-dim2">Setup checks</div>
           {setupStatus?.checks.length ? (
             <div className="space-y-1.5">
               {setupStatus.checks.map((check) => (
                 <div key={check.id} className="grid grid-cols-[76px_minmax(0,1fr)] gap-2 rounded-md bg-ink px-2 py-1.5 text-[11.5px] leading-5">
                   <span
                     className={cn(
-                      'rounded border px-1.5 py-0.5 text-center text-[10px] uppercase tracking-[0.06em]',
+                      'rounded border px-1.5 py-0.5 text-center text-[10px] tracking-[0.06em]',
                       providerSetupCheckClassName(check.status),
                     )}
                   >
-                    {check.status}
+                    {capitalizeFirst(check.status)}
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-term-name">{check.label}</span>
@@ -334,7 +335,7 @@ export function ProviderSetupDiagnostics({
 
         {runtimeError ? (
           <div className="rounded-lg border border-term-rose/35 bg-term-rose/10 px-2.5 py-2">
-            <div className="mb-1 text-[10px] uppercase tracking-[0.12em] text-term-rose">Last error</div>
+            <div className="mb-1 text-[10px] tracking-[0.12em] text-term-rose">Last error</div>
             <p className="whitespace-pre-wrap break-words text-[11.5px] leading-5 text-term-dim">{runtimeError}</p>
           </div>
         ) : null}

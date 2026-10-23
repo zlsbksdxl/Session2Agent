@@ -47,7 +47,6 @@
   color: var(--lag-muted);
   font: 10px/1.2 var(--lag-mono);
   letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
 .lag-badges {
@@ -722,7 +721,7 @@
 }
 
 .lag-issue-list li { display: grid; gap: 2px; font-size: 9px; }
-.lag-issue-list strong { color: var(--lag-danger); text-transform: uppercase; }
+.lag-issue-list strong { color: var(--lag-danger); }
 .lag-issue-list small { color: var(--lag-muted); font-family: var(--lag-mono); }
 
 .lag-lap-card > header { display: flex; justify-content: space-between; gap: 8px; }

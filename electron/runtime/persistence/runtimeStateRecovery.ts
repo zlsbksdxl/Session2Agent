@@ -674,6 +674,29 @@ function normalizeSessionForkOrigin(value) {
   }
 }
 
+function normalizeNativeSessionOrigin(value, providerKind, providerInstanceId) {
+  if (!isObject(value)) return undefined
+  const sourceKey = optionalTrimmedString(value.sourceKey)
+  const nativeSessionId = optionalTrimmedString(value.nativeSessionId)
+  const profileId = optionalTrimmedString(value.providerInstanceId)
+  const importedAt = optionalTrimmedString(value.importedAt)
+  if (!sourceKey || sourceKey.length > 4096 || /\p{Cc}/u.test(sourceKey) ||
+      !nativeSessionId || !/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,255}$/.test(nativeSessionId) ||
+      !profileId || profileId !== providerInstanceId ||
+      (value.providerKind !== 'codex' && value.providerKind !== 'claude-code') ||
+      value.providerKind !== providerKind || !importedAt || !Number.isFinite(Date.parse(importedAt))) {
+    return undefined
+  }
+  return {
+    sourceKey,
+    nativeSessionId,
+    providerKind: value.providerKind,
+    providerInstanceId: profileId,
+    importedAt,
+    ...(typeof value.historyTruncated === 'boolean' ? { historyTruncated: value.historyTruncated } : {}),
+  }
+}
+
 function normalizePendingProviderFork(value) {
   if (!isObject(value)) return undefined
   const sourceProviderSessionId = optionalTrimmedString(
@@ -840,6 +863,7 @@ export function normalizeSession(
     providerResumeCursor: nonEmptyString(value.providerResumeCursor)
       ? value.providerResumeCursor
       : undefined,
+    nativeSessionOrigin: normalizeNativeSessionOrigin(value.nativeSessionOrigin, providerKind, providerInstanceId),
     forkedFrom: normalizeSessionForkOrigin(value.forkedFrom),
     providerFork: normalizePendingProviderFork(value.providerFork),
     agent: nonEmptyString(value.agent)

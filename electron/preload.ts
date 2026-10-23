@@ -73,6 +73,12 @@ contextBridge.exposeInMainWorld('orrery', {
       ipcRenderer.invoke('orrery:upsert-provider-instance', input),
     chooseProjectFolder: () =>
       ipcRenderer.invoke('orrery:choose-project-folder'),
+    listNativeSessions: (input) =>
+      ipcRenderer.invoke('orrery:list-native-sessions', input),
+    readNativeSession: (input) =>
+      ipcRenderer.invoke('orrery:read-native-session', input),
+    importNativeSession: (input) =>
+      ipcRenderer.invoke('orrery:import-native-session', input),
     createSession: (input) =>
       ipcRenderer.invoke('orrery:create-session', input),
     forkSession: (input) => ipcRenderer.invoke('orrery:fork-session', input),

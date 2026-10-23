@@ -3,6 +3,8 @@ import { type OpenWorkspaceTarget, openWorkspaceTargetIds } from '@/shared/graph
 
 export const chatPanelWidthStorageKey = 'orrery.chatPanelWidth.v1';
 
+export const railSidebarWidthStorageKey = 'orrery.railSidebarWidth.v1';
+
 export const defaultChatPanelWidth = 440;
 
 export const chatPanelMinWidth = 360;
@@ -11,9 +13,15 @@ export const canvasPanelMinWidth = 520;
 
 export const chatCanvasSeparatorWidth = 8;
 
-export const railSidebarWidth = 264;
+export const defaultRailSidebarWidth = 264;
 
-export const expandedGraphLayoutMinWidth = railSidebarWidth + chatPanelMinWidth + chatCanvasSeparatorWidth + canvasPanelMinWidth;
+export const railSidebarMinWidth = 220;
+
+export const railSidebarMaxWidth = 400;
+
+export function expandedGraphLayoutMinWidth(sidebarWidth = defaultRailSidebarWidth) {
+  return sidebarWidth + chatPanelMinWidth + chatCanvasSeparatorWidth + canvasPanelMinWidth;
+}
 
 export const graphCollapsedStorageKey = 'orrery.graphCollapsed.v1';
 
@@ -45,6 +53,23 @@ export function initialChatPanelWidth() {
     return Number.isFinite(stored) && stored > 0 ? stored : defaultChatPanelWidth;
   } catch {
     return defaultChatPanelWidth;
+  }
+}
+
+export function clampRailSidebarWidth(width: number) {
+  return Math.min(Math.max(Number.isFinite(width) ? width : defaultRailSidebarWidth, railSidebarMinWidth), railSidebarMaxWidth);
+}
+
+export function initialRailSidebarWidth() {
+  if (typeof window === 'undefined') {
+    return defaultRailSidebarWidth;
+  }
+
+  try {
+    const stored = Number(window.localStorage.getItem(railSidebarWidthStorageKey));
+    return Number.isFinite(stored) && stored > 0 ? clampRailSidebarWidth(stored) : defaultRailSidebarWidth;
+  } catch {
+    return defaultRailSidebarWidth;
   }
 }
 
@@ -87,18 +112,18 @@ export function initialGraphCollapsed() {
 
 export function initialViewportWidth() {
   if (typeof window === 'undefined') {
-    return expandedGraphLayoutMinWidth;
+    return expandedGraphLayoutMinWidth();
   }
 
   return window.innerWidth;
 }
 
-export function clampChatPanelWidth(width: number, totalWidth?: number) {
+export function clampChatPanelWidth(width: number, totalWidth?: number, sidebarWidth = defaultRailSidebarWidth) {
   const maxWidth =
     totalWidth && totalWidth > 0
-      ? Math.max(chatPanelMinWidth, totalWidth - railSidebarWidth - canvasPanelMinWidth - chatCanvasSeparatorWidth)
+      ? Math.max(chatPanelMinWidth, totalWidth - sidebarWidth - canvasPanelMinWidth - chatCanvasSeparatorWidth)
       : Number.POSITIVE_INFINITY;
   return Math.min(Math.max(width, chatPanelMinWidth), maxWidth);
 }
 
-export type RailTab = 'orchestrate' | 'agents' | 'sessions' | 'chat' | 'workspace';
+export type RailTab = 'orchestrate' | 'agents' | 'appearance' | 'sessions' | 'chat' | 'workspace';

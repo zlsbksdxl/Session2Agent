@@ -9,6 +9,7 @@ import type { AppUpdateState } from '../shared/app-update.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const devServerUrl = process.env.VITE_DEV_SERVER_URL
+const appIconPath = path.join(app.getAppPath(), app.isPackaged ? 'dist' : 'public', 'app-icon.png')
 let runtime: RuntimeSessionManager | undefined
 let updates: AppUpdateController | undefined
 let quitFlushStarted = false
@@ -34,6 +35,7 @@ function createMainWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 720,
+    icon: appIconPath,
     title: 'looperators',
     backgroundColor: '#111111',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
@@ -58,6 +60,10 @@ function createMainWindow() {
 }
 
 app.whenReady().then(async () => {
+  if (process.platform === 'darwin') {
+    app.dock?.setIcon(appIconPath)
+  }
+
   // Finder-launched desktop apps do not inherit the user's login-shell PATH.
   // Hydrate it before provider instances, probes, or adapters are created so
   // discovery and real sessions resolve the same executables.
@@ -175,6 +181,15 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('orrery:create-session', (_event, input) =>
     humanCommand('create_session', input),
+  )
+  ipcMain.handle('orrery:list-native-sessions', (_event, input) =>
+    runtime.listNativeSessions(input),
+  )
+  ipcMain.handle('orrery:read-native-session', (_event, input) =>
+    runtime.readNativeSession(input),
+  )
+  ipcMain.handle('orrery:import-native-session', (_event, input) =>
+    humanCommand('import_native_session', input),
   )
   ipcMain.handle('orrery:fork-session', (_event, input) =>
     humanCommand('fork_session', input),

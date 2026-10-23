@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import type { RuntimeApi } from '@/runtime-client';
 import type { GraphState } from '@/shared/graph-state';
 import { cn } from '@/lib/utils';
+import { capitalizeFirst } from '@/lib/format';
 import { workflowExecutionStatus, type WorkflowProposal } from '@shared/workflow-authoring';
 
 const statusStyle: Record<WorkflowProposal['status'], string> = {
@@ -94,9 +95,9 @@ export function WorkflowProposalCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-[11px] uppercase tracking-[0.13em] text-foreground">Workflow {patch ? 'patch' : 'proposal'}</h3>
-            <span className={cn('rounded-full border px-1.5 py-0.5 text-[9px] uppercase tracking-[0.08em]', visibleStatusStyle)}>
-              {visibleStatus}
+            <h3 className="text-[11px] tracking-[0.13em] text-foreground">Workflow {patch ? 'patch' : 'proposal'}</h3>
+            <span className={cn('rounded-full border px-1.5 py-0.5 text-[9px] tracking-[0.08em]', visibleStatusStyle)}>
+              {capitalizeFirst(visibleStatus)}
             </span>
             <span className="text-[9.5px] text-term-faint">v{plan.version} · {plan.recipe}</span>
           </div>
@@ -129,7 +130,7 @@ export function WorkflowProposalCard({
 
       <div className="grid gap-2 @[40rem]:grid-cols-2">
         <div className="rounded-lg border border-ink-line-2 bg-ink/55 p-2.5">
-          <div className="mb-1.5 text-[9px] uppercase tracking-[0.14em] text-term-dim2">Participants</div>
+          <div className="mb-1.5 text-[9px] tracking-[0.14em] text-term-dim2">Participants</div>
           <div className="space-y-1.5">
             {plan.participants.map((participant) => (
               <div key={participant.key} className="flex min-w-0 items-center gap-2 text-[10.5px]">
@@ -152,7 +153,7 @@ export function WorkflowProposalCard({
         </div>
 
         <div className="rounded-lg border border-ink-line-2 bg-ink/55 p-2.5">
-          <div className="mb-1.5 text-[9px] uppercase tracking-[0.14em] text-term-dim2">Relationships & stop</div>
+          <div className="mb-1.5 text-[9px] tracking-[0.14em] text-term-dim2">Relationships & stop</div>
           <div className="space-y-1.5">
             {plan.relationships.map((relationship) => (
               <div key={relationship.key} className="flex min-w-0 items-start gap-2 text-[10px] leading-4">

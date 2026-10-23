@@ -1,34 +1,13 @@
 import { useEffect, useState } from 'react';
-import {
-  Activity,
-  Bot,
-  Check,
-  ChevronDown,
-  ClipboardCheck,
-  FolderOpen,
-  GitBranch,
-  RefreshCw,
-  Sparkles,
-  Terminal,
-  TriangleAlert,
-  type LucideIcon,
-} from 'lucide-react';
+import { Bot, Check, ChevronDown, ClipboardCheck, FolderOpen, GitBranch, RefreshCw, Sparkles, Terminal, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { DropdownMenu as DropdownMenuPrimitive, Select as SelectPrimitive } from 'radix-ui';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { type OpenWorkspaceTarget, type ProviderSetupModel, type WorkMode } from '@/shared/graph-state';
-import {
-  type ProviderKind,
-  type ProviderInstance,
-  type ProviderReasoningEffort,
-  type ProviderRuntimeMode,
-  providerCapability,
-  providerRuntimeModeCapability,
-  providerSupportsReasoningEffort,
-} from '@/shared/provider-runtime';
+import { type OpenWorkspaceTarget, type WorkMode } from '@/shared/graph-state';
+import { type ProviderKind, type ProviderRuntimeMode, providerCapability, providerRuntimeModeCapability } from '@/shared/provider-runtime';
 import { workspaceOpenTargetOptions, workspaceOpenTargetOption, workspaceOpenTargetAvailable } from '@/lib/layout-prefs';
-import { providerOptions, modelOptionsForKind, workModeOptions, reasoningEffortOptionsForKind } from '@/lib/provider-catalog';
+import { providerOptions, modelOptionsForKind, workModeOptions } from '@/lib/provider-catalog';
 import { type ProjectCwdValidation, type NewChatProjectOption, chooseProjectOptionValue, uniqueStrings } from '@/lib/workspace';
 
 export function ProviderSegmentedControl({
@@ -53,8 +32,10 @@ export function ProviderSegmentedControl({
             aria-pressed={isSelected}
             disabled={disabled}
             className={cn(
-              'truncate rounded-md px-2 py-1.5 text-[10.5px] uppercase tracking-[0.06em] transition disabled:cursor-not-allowed',
-              isSelected ? 'bg-term-accent/[0.12] text-term-accent ring-1 ring-term-accent/30' : 'text-term-dim hover:bg-foreground/[0.06] hover:text-term-name',
+              'truncate rounded-md px-2 py-1.5 text-[10.5px] tracking-[0.06em] transition disabled:cursor-not-allowed',
+              isSelected
+                ? 'bg-term-accent/[0.12] text-term-accent ring-1 ring-term-accent/30'
+                : 'text-term-dim hover:bg-foreground/[0.06] hover:text-term-name',
             )}
             onClick={() => onChange(option.id)}
           >
@@ -256,7 +237,7 @@ export function OpenWorkspaceSplitButton({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="h-7 rounded-none border-0 px-2 font-mono text-[10.5px] uppercase tracking-[0.06em]"
+              className="h-7 rounded-none border-0 px-2 font-mono text-[10.5px] tracking-[0.06em]"
               variant="ghost"
               size="sm"
               disabled={mainDisabled}
@@ -379,8 +360,8 @@ export function ModelPickerPill({
           className="h-7 w-28 shrink-0 rounded-md border border-ink-line bg-ink px-2 text-[11.5px] font-medium text-term-name outline-none transition placeholder:text-term-faint focus-visible:border-term-accent-hi/60 focus-visible:ring-1 focus-visible:ring-term-accent-hi/25 disabled:cursor-not-allowed disabled:opacity-55"
           value={model}
           disabled={disabled}
-          placeholder="model id"
-          aria-label="Custom model id"
+          placeholder="Model ID"
+          aria-label="Custom model ID"
           onChange={(event) => onChange(event.target.value)}
         />
       ) : null}
@@ -393,51 +374,33 @@ export function NewChatSetupBar({
   projectCwd,
   validation,
   providerKind,
-  providerInstanceId,
-  providerInstances,
   workMode,
   branch,
   runtimeMode,
-  model,
-  reasoningEffort,
-  discoveredModels,
-  currentModelId,
   disabled,
   canChooseProject,
   onProjectChange,
   onChooseProject,
   onProviderKindChange,
-  onProviderInstanceIdChange,
   onWorkModeChange,
   onBranchChange,
   onRuntimeModeChange,
-  onModelChange,
-  onReasoningEffortChange,
 }: {
   projects: NewChatProjectOption[];
   projectCwd: string;
   validation: ProjectCwdValidation;
   providerKind: ProviderKind;
-  providerInstanceId: string;
-  providerInstances: ProviderInstance[];
   workMode: WorkMode;
   branch: string;
   runtimeMode: ProviderRuntimeMode;
-  model: string;
-  reasoningEffort: ProviderReasoningEffort;
-  discoveredModels?: ProviderSetupModel[];
-  currentModelId?: string;
   disabled?: boolean;
   canChooseProject?: boolean;
   onProjectChange: (cwd: string) => void;
   onChooseProject: () => void;
   onProviderKindChange: (providerKind: ProviderKind) => void;
-  onProviderInstanceIdChange: (providerInstanceId: string) => void;
   onWorkModeChange: (workMode: WorkMode) => void;
   onBranchChange: (branch: string) => void;
   onRuntimeModeChange: (runtimeMode: ProviderRuntimeMode) => void;
-  onModelChange: (model: string) => void;
-  onReasoningEffortChange: (reasoningEffort: ProviderReasoningEffort) => void;
 }) {
   const selectedProject = projects.find((project) => project.cwd === projectCwd.trim()) ?? projects[0];
   const branchOptions = uniqueStrings([selectedProject?.currentBranch, ...(selectedProject?.branches ?? [])]);
@@ -448,16 +411,6 @@ export function NewChatSetupBar({
   const isKnownNonGitProject = selectedProject?.isGitRepo === false;
   const canPickBranch = workMode === 'worktree' && branchOptions.length > 0;
   const providerRuntimeModes = providerCapability(providerKind).runtimeModes;
-  const selectedCatalogModel = discoveredModels?.find(
-    (entry) => entry.modelId === (model.trim() || currentModelId),
-  );
-  const baseEffortOptions = reasoningEffortOptionsForKind(providerKind);
-  const effortOptions =
-    selectedCatalogModel?.supportsReasoningEffort === false
-      ? []
-      : selectedCatalogModel?.reasoningEfforts
-        ? baseEffortOptions.filter((option) => selectedCatalogModel.reasoningEfforts?.includes(option.id))
-        : baseEffortOptions;
 
   return (
     <div className="app-region-no-drag mb-2">
@@ -518,30 +471,6 @@ export function NewChatSetupBar({
         />
 
         <NewChatSetupPill
-          icon={Bot}
-          label="Profile"
-          hint="Provider profile"
-          value={providerInstanceId}
-          options={providerInstances
-            .filter((instance) => instance.kind === providerKind)
-            .map((instance) => ({
-              value: instance.providerInstanceId,
-              label: instance.label,
-            }))}
-          disabled={disabled}
-          className="w-36"
-          onChange={onProviderInstanceIdChange}
-        />
-
-        <ModelPickerPill
-          providerKind={providerKind}
-          model={model}
-          discoveredOptions={discoveredModels?.map((entry) => ({ value: entry.modelId, label: entry.name }))}
-          disabled={disabled}
-          onChange={onModelChange}
-        />
-
-        <NewChatSetupPill
           icon={Terminal}
           label="Work"
           value={workMode}
@@ -590,22 +519,6 @@ export function NewChatSetupBar({
             disabled={disabled}
             className="shrink-0"
             onChange={(nextRuntimeMode) => onRuntimeModeChange(nextRuntimeMode as ProviderRuntimeMode)}
-          />
-        ) : null}
-
-        {providerSupportsReasoningEffort(providerKind) && effortOptions.length > 0 ? (
-          <NewChatSetupPill
-            icon={Activity}
-            label="Think"
-            value={reasoningEffort}
-            tone="secondary"
-            options={effortOptions.map((option) => ({
-              value: option.id,
-              label: option.label,
-            }))}
-            disabled={disabled}
-            className="shrink-0"
-            onChange={(nextReasoningEffort) => onReasoningEffortChange(nextReasoningEffort as ProviderReasoningEffort)}
           />
         ) : null}
       </div>

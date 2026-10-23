@@ -118,7 +118,7 @@ export function LoopPanel({
           </div>
         </div>
         {product?.canStop ? (
-          <Button className="h-8 font-mono text-[10px] uppercase tracking-[0.05em]" variant="outline" size="sm" onClick={() => setIsStopConfirming(true)}>
+          <Button className="h-8 font-mono text-[10px] tracking-[0.05em]" variant="outline" size="sm" onClick={() => setIsStopConfirming(true)}>
             <Square className="size-3" />
             Stop loop
           </Button>
@@ -230,7 +230,7 @@ export function LoopPanel({
 
         {product?.blockingIssues.length ? (
           <section className="mt-3 rounded-lg border border-rose-500/30 bg-rose-500/[0.06] p-2.5">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.08em] text-rose-700 dark:text-rose-300">Latest blocking issues</h3>
+            <h3 className="text-[10px] font-semibold tracking-[0.08em] text-rose-700 dark:text-rose-300">Latest blocking issues</h3>
             <IssueList issues={product.blockingIssues} />
           </section>
         ) : null}
@@ -245,7 +245,7 @@ export function LoopPanel({
 
         {loop ? (
           <details className="mt-3 rounded-lg border border-border bg-muted/20 p-2.5 text-[10px] text-muted-foreground">
-            <summary className="cursor-pointer font-semibold uppercase tracking-[0.08em] text-foreground/70">Diagnostics & advanced controls</summary>
+            <summary className="cursor-pointer font-semibold tracking-[0.08em] text-foreground/70">Diagnostics & advanced controls</summary>
             <dl className="mt-2 space-y-1 break-all">
               <div>loopId: {loop.loopId}</div>
               <div>
@@ -264,7 +264,7 @@ export function LoopPanel({
                 ))}
             </dl>
             <Button
-              className="mt-2 h-7 font-mono text-[9.5px] uppercase"
+              className="mt-2 h-7 font-mono text-[9.5px]"
               variant="outline"
               size="sm"
               disabled={allFrozen || !runtimeApi}
@@ -347,7 +347,7 @@ function LapCard({
         <p className="mt-1.5 text-[10.5px] text-muted-foreground">Coder completed a fix turn and handed the updated diff back for review.</p>
       ) : null}
       <details className="mt-2 border-t border-border/60 pt-1.5">
-        <summary className="cursor-pointer text-[9.5px] uppercase tracking-[0.08em] text-muted-foreground">Activity details</summary>
+        <summary className="cursor-pointer text-[9.5px] tracking-[0.08em] text-muted-foreground">Activity details</summary>
         <ol className="mt-1.5 space-y-1.5">
           {lap.hops.map((hop) => (
             <HopRow key={hop.activatedEventId} hop={hop} state={state} />

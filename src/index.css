@@ -78,14 +78,14 @@
    ------------------------------------------------------------
    Two independent axes on <html>:
      - mode:  the `.dark` class (light is the default)
-     - theme: the `data-theme` attribute (absent = default "lime")
+     - theme: the `data-theme` attribute (absent = "default")
    Every theme defines the full token set for both modes.
    INVARIANT: theme blocks ([data-theme='…']) must stay AFTER the
    default :root/.dark blocks — equal-specificity overrides rely
    on source order.
    ============================================================ */
 
-/* ===== Theme "lime" (default) — LIGHT: neutral chrome, lime identity ===== */
+/* ===== Base / "lime" — LIGHT: neutral chrome, lime identity ===== */
 :root {
   color-scheme: light;
   --background: #f8fafc;
@@ -140,7 +140,7 @@
   --term-rose: #e11d48;
 }
 
-/* ===== Theme "lime" (default) — DARK: ink terminal everywhere, lime identity ===== */
+/* ===== Base / "lime" — DARK: ink terminal everywhere, lime identity ===== */
 .dark {
   color-scheme: dark;
   --background: #07090a;
@@ -199,6 +199,204 @@
    Registry: src/lib/themes.ts. Contrast targets (both modes):
    body text 9-12:1, secondary 4.5-6:1, decorative <= 3.5:1.
    ============================================================ */
+
+/* ===== Theme "default" — LIGHT: independently adjustable white base ===== */
+:root:not([data-theme]),
+[data-theme='default'] {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #27272a;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --muted: #f7f7f8;
+  --muted-foreground: #62626a;
+  --accent: #ededee;
+  --accent-foreground: #27272a;
+  --destructive: #bd3142;
+  --border: color-mix(in oklch, var(--foreground) 13%, transparent);
+  --input: color-mix(in oklch, var(--foreground) 18%, transparent);
+  --ring: #52525b;
+  --accent-ink: #27272a;
+  --chart-1: #52525b;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #27272a;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #ededee;
+  --sidebar-accent-foreground: #27272a;
+  --sidebar-border: color-mix(in oklch, var(--foreground) 13%, transparent);
+  --sidebar-ring: #52525b;
+
+  --ink: #ffffff;
+  --ink-soft: #f7f7f8;
+  --ink-line: color-mix(in oklch, var(--foreground) 13%, transparent);
+  --ink-line-2: color-mix(in oklch, var(--foreground) 7%, transparent);
+  --term-name: #18181b;
+  --term-dim: #62626a;
+  --term-dim2: #74747d;
+  --term-faint: #92929c;
+  --term-accent: #3f3f46;
+  --term-accent-hi: #3f3f46;
+  --term-emerald: #18754d;
+  --term-green: #23773e;
+  --term-cyan: #17658c;
+  --term-amber: #9a5c00;
+  --term-rose: #bd3142;
+}
+
+/* ===== Theme "default" — DARK: neutral counterpart of the white base ===== */
+:root:not([data-theme]).dark,
+[data-theme='default'].dark {
+  color-scheme: dark;
+  --background: #101012;
+  --foreground: #f0f0f2;
+  --card: #18181b;
+  --card-foreground: #f0f0f2;
+  --popover: #1c1c20;
+  --popover-foreground: #f0f0f2;
+  --primary: #f4f4f5;
+  --primary-foreground: #18181b;
+  --secondary: #27272b;
+  --secondary-foreground: #f0f0f2;
+  --muted: #202024;
+  --muted-foreground: #a7a7b1;
+  --accent: #303035;
+  --accent-foreground: #f4f4f5;
+  --destructive: #f28a95;
+  --border: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --input: color-mix(in oklch, var(--foreground) 16%, transparent);
+  --ring: #d4d4d8;
+  --accent-ink: #e4e4e7;
+  --chart-1: #d4d4d8;
+  --sidebar: #141416;
+  --sidebar-foreground: #f0f0f2;
+  --sidebar-primary: #f4f4f5;
+  --sidebar-primary-foreground: #18181b;
+  --sidebar-accent: #303035;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --sidebar-ring: #d4d4d8;
+
+  --ink: #151518;
+  --ink-soft: #202024;
+  --ink-line: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --ink-line-2: color-mix(in oklch, var(--foreground) 7%, transparent);
+  --term-name: #f0f0f2;
+  --term-dim: #a7a7b1;
+  --term-dim2: #8e8e99;
+  --term-faint: #656570;
+  --term-accent: #e4e4e7;
+  --term-accent-hi: #f4f4f5;
+  --term-emerald: #83d1ac;
+  --term-green: #8ad2a3;
+  --term-cyan: #8bc9e5;
+  --term-amber: #e3bd7a;
+  --term-rose: #f28a95;
+}
+
+/* ===== Theme "white" — LIGHT: white surfaces, neutral ink controls ===== */
+[data-theme='white'] {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #27272a;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --muted: #f7f7f8;
+  --muted-foreground: #62626a;
+  --accent: #ededee;
+  --accent-foreground: #27272a;
+  --destructive: #bd3142;
+  --border: color-mix(in oklch, var(--foreground) 13%, transparent);
+  --input: color-mix(in oklch, var(--foreground) 18%, transparent);
+  --ring: #52525b;
+  --accent-ink: #27272a;
+  --chart-1: #52525b;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #27272a;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #ededee;
+  --sidebar-accent-foreground: #27272a;
+  --sidebar-border: color-mix(in oklch, var(--foreground) 13%, transparent);
+  --sidebar-ring: #52525b;
+
+  --ink: #ffffff;
+  --ink-soft: #f7f7f8;
+  --ink-line: color-mix(in oklch, var(--foreground) 13%, transparent);
+  --ink-line-2: color-mix(in oklch, var(--foreground) 7%, transparent);
+  --term-name: #18181b;
+  --term-dim: #62626a;
+  --term-dim2: #74747d;
+  --term-faint: #92929c;
+  --term-accent: #3f3f46;
+  --term-accent-hi: #3f3f46;
+  --term-emerald: #18754d;
+  --term-green: #23773e;
+  --term-cyan: #17658c;
+  --term-amber: #9a5c00;
+  --term-rose: #bd3142;
+}
+
+/* ===== Theme "white" — DARK: neutral charcoal, soft white controls ===== */
+[data-theme='white'].dark {
+  color-scheme: dark;
+  --background: #101012;
+  --foreground: #f0f0f2;
+  --card: #18181b;
+  --card-foreground: #f0f0f2;
+  --popover: #1c1c20;
+  --popover-foreground: #f0f0f2;
+  --primary: #f4f4f5;
+  --primary-foreground: #18181b;
+  --secondary: #27272b;
+  --secondary-foreground: #f0f0f2;
+  --muted: #202024;
+  --muted-foreground: #a7a7b1;
+  --accent: #303035;
+  --accent-foreground: #f4f4f5;
+  --destructive: #f28a95;
+  --border: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --input: color-mix(in oklch, var(--foreground) 16%, transparent);
+  --ring: #d4d4d8;
+  --accent-ink: #e4e4e7;
+  --chart-1: #d4d4d8;
+  --sidebar: #141416;
+  --sidebar-foreground: #f0f0f2;
+  --sidebar-primary: #f4f4f5;
+  --sidebar-primary-foreground: #18181b;
+  --sidebar-accent: #303035;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --sidebar-ring: #d4d4d8;
+
+  --ink: #151518;
+  --ink-soft: #202024;
+  --ink-line: color-mix(in oklch, var(--foreground) 12%, transparent);
+  --ink-line-2: color-mix(in oklch, var(--foreground) 7%, transparent);
+  --term-name: #f0f0f2;
+  --term-dim: #a7a7b1;
+  --term-dim2: #8e8e99;
+  --term-faint: #656570;
+  --term-accent: #e4e4e7;
+  --term-accent-hi: #f4f4f5;
+  --term-emerald: #83d1ac;
+  --term-green: #8ad2a3;
+  --term-cyan: #8bc9e5;
+  --term-amber: #e3bd7a;
+  --term-rose: #f28a95;
+}
 
 /* ===== Theme "inkstone" — LIGHT: porcelain ground, deep pine accent ===== */
 [data-theme='inkstone'] {
@@ -551,20 +749,6 @@
     animation: orrery-caret-blink 1.05s steps(1) infinite;
   }
 
-  .orrery-orbit,
-  .orrery-orbit-rev {
-    transform-box: view-box;
-    transform-origin: 16px 16px;
-  }
-
-  .orrery-orbit {
-    animation: orrery-spin 9s linear infinite;
-  }
-
-  .orrery-orbit-rev {
-    animation: orrery-spin 6.5s linear infinite reverse;
-  }
-
   .orrery-markdown {
     font-family: var(--font-sans);
     overflow-wrap: anywhere;
@@ -693,7 +877,6 @@
     font-size: 0.66rem;
     letter-spacing: 0.08em;
     text-overflow: ellipsis;
-    text-transform: uppercase;
     white-space: nowrap;
   }
 
@@ -809,15 +992,7 @@
   }
 }
 
-@keyframes orrery-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .orrery-orbit,
-  .orrery-orbit-rev,
   .orrery-edge-label-recent,
   .orrery-caret {
     animation: none;

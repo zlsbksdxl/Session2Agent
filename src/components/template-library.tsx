@@ -374,7 +374,7 @@ export function TemplateLibraryPanel({
           <div className="mt-2.5 space-y-2 border-t border-border/70 pt-2.5">
             {template.slots.map((slot) => (
               <label key={slot.key} className="block space-y-1">
-                <span className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                <span className="text-[10px] tracking-[0.1em] text-muted-foreground">
                   {slot.label}
                   {slot.required ? '' : ' (optional)'}
                 </span>
@@ -383,12 +383,12 @@ export function TemplateLibraryPanel({
               </label>
             ))}
             <section className="rounded-xl border border-sky-500/25 bg-sky-500/5 p-2.5 text-[10.5px] leading-4">
-              <p className="font-semibold uppercase tracking-[0.1em]">Preview</p>
+              <p className="font-semibold tracking-[0.1em]">Preview</p>
               <p className="mt-1 text-muted-foreground">{template.handsOff}</p>
               <p className="mt-1 text-term-faint">Nothing changes on the graph until you press Run workflow.</p>
             </section>
             <Button
-              className="h-8 w-full font-mono text-[10.5px] uppercase tracking-[0.06em]"
+              className="h-8 w-full font-mono text-[10.5px] tracking-[0.06em]"
               size="sm"
               disabled={!runtimeApi || isSubmitting || missingRequired}
               onClick={() => void apply()}
@@ -402,7 +402,7 @@ export function TemplateLibraryPanel({
         {!template.builtin && !isSelected ? (
           <div className="mt-1.5 flex justify-end">
             <Button
-              className="h-6 px-2 font-mono text-[10px] uppercase tracking-[0.06em]"
+              className="h-6 px-2 font-mono text-[10px] tracking-[0.06em]"
               variant="ghost"
               size="sm"
               onClick={() => void removeTemplate(template.id)}
@@ -432,8 +432,8 @@ export function TemplateLibraryPanel({
     >
       <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-3">
         <Workflow className="size-4 text-accent-ink" />
-        <h2 className="text-[12px] uppercase tracking-[0.14em] text-foreground">New Workflow</h2>
-        <Button className="ml-auto" variant="ghost" size="icon" aria-label="Close New Workflow" autoFocus={autoFocusClose} onClick={requestClose}>
+        <h2 className="text-[12px] tracking-[0.14em] text-foreground">New workflow</h2>
+        <Button className="ml-auto" variant="ghost" size="icon" aria-label="Close new workflow" autoFocus={autoFocusClose} onClick={requestClose}>
           <X className="size-4" />
         </Button>
       </header>
@@ -472,18 +472,18 @@ export function TemplateLibraryPanel({
         </div>
 
         <div>
-          <p className="mb-2 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">Start with a common workflow</p>
+          <p className="mb-2 text-[10px] tracking-[0.14em] text-muted-foreground">Start with a common workflow</p>
           <ul className="space-y-2">{primaryTemplates.map((template) => templateCard(template, catalogById.get(template.id)))}</ul>
         </div>
         {feedback ? <p className="text-[10.5px] leading-4 text-lime-700 dark:text-lime-300">{feedback}</p> : null}
 
         <details className="rounded-xl border border-border bg-card p-3">
-          <summary className="cursor-pointer text-[10.5px] uppercase tracking-[0.1em] text-muted-foreground">More workflows · Advanced</summary>
+          <summary className="cursor-pointer text-[10.5px] tracking-[0.1em] text-muted-foreground">More workflows · advanced</summary>
           <ul className="mt-2 space-y-2">{moreTemplates.map((template) => templateCard(template))}</ul>
 
           {saveOptions.length > 0 ? (
             <div className="mt-3 border-t border-border pt-3">
-              <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-[11px] tracking-[0.1em] text-muted-foreground">
                 <Save className="size-3.5" />
                 Save this workflow
               </div>
@@ -496,7 +496,7 @@ export function TemplateLibraryPanel({
               </select>
               <input className={cn(slotInputCls, 'mt-2')} placeholder="template name" value={saveName} onChange={(event) => setSaveName(event.target.value)} />
               <Button
-                className="mt-2 h-7 w-full font-mono text-[10.5px] uppercase tracking-[0.06em]"
+                className="mt-2 h-7 w-full font-mono text-[10.5px] tracking-[0.06em]"
                 size="sm"
                 variant="outline"
                 disabled={!runtimeApi || isSubmitting || saveName.trim().length === 0 || !saveWorkflowId}

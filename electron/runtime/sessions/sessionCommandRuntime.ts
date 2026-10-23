@@ -47,6 +47,7 @@ import { planCouncilFailed } from '../workflows/planCouncil.js'
 import type { RuntimeRun } from './sessionRuntimeController.js'
 import { createSessionFork } from './sessionFork.js'
 import { threadGoalObjectiveMaxLength } from '../../../shared/thread-goal.js'
+import type { NativeSessionDetails } from '../../../shared/native-session.js'
 
 const defaultPrompt =
   'You are running under Orrery P1 live session verification. Reply with one short sentence confirming the provider connection is working, then stop.'
@@ -65,6 +66,7 @@ function providerPromptContent(input) {
 
 export interface SessionCommandRuntimeHost {
   state(): JsonRecord
+  readNativeSession(input: JsonRecord): Promise<NativeSessionDetails>
   runs(): Map<string, RuntimeRun>
   runContext(): Map<string, JsonRecord>
   channelStore(): ContextChannelStore
@@ -262,6 +264,134 @@ export class SessionCommandRuntime {
 
   forkSession(input: JsonRecord = {}) {
     return this.cmdForkSession(input, this.#host.humanCtx())
+  }
+
+  async cmdImportNativeSession(input: JsonRecord = {}, ctx: JsonRecord) {
+    if (ctx.actor?.kind !== 'human') {
+      throw new Error('Only a human can import a native session.')
+    }
+    // Read again inside the serialized command. Renderer previews and supplied
+    // transcript/path fields never become authority for an imported binding.
+    const details = await this.#host.readNativeSession(input)
+    const native = details.session
+    const existing = native.importedSessionId
+      ? this.#host.state().sessions[native.importedSessionId]
+      : undefined
+    if (existing) {
+      if (existing.archived === true) {
+        this.cmdArchiveSession({ sessionId: existing.sessionId, archived: false }, ctx)
+      }
+      return { sessionId: existing.sessionId, alreadyImported: true, state: this.#host.getState() }
+    }
+    if (native.active === true) {
+      throw new Error('This native session is active. Wait for it to become idle before importing it.')
+    }
+    const cwd = validateRunnableCwd(optionalTrimmedString(input.cwd) ?? native.cwd)
+    const workspace = localSessionWorkspace(cwd, undefined)
+    const provider = providerConfig(
+      { providerKind: native.providerKind, providerInstanceId: native.providerInstanceId },
+      this.#host.state().providerInstances,
+    )
+    const sessionId = randomUUID()
+    const ts = now()
+    const rawMessages = Array.isArray(details.messages) ? details.messages : []
+    const retained = []
+    let historyBytes = 0
+    // Persist a bounded preview, retaining whole messages without rewriting
+    // their text. Native provider storage remains the continuation authority.
+    for (let index = rawMessages.length - 1; index >= 0 && retained.length < 1000; index -= 1) {
+      const message = rawMessages[index]
+      if (!isObject(message) || !['user', 'assistant', 'system'].includes(message.role) || typeof message.content !== 'string') continue
+      const bytes = Buffer.byteLength(message.content, 'utf8')
+      if (historyBytes + bytes > 2 * 1024 * 1024) break
+      historyBytes += bytes
+      retained.push({ message, index })
+    }
+    retained.reverse()
+    const usedMessageIds = new Set<string>()
+    const messageBaseTime = Number.isFinite(Date.parse(native.createdAt)) ? Date.parse(native.createdAt) : Date.parse(ts) - rawMessages.length
+    let previousMessageTime = -Infinity
+    const messages = retained.map(({ message, index }) => {
+      const requestedId = optionalTrimmedString(message.id)
+      const id = requestedId && !usedMessageIds.has(requestedId) ? requestedId : `${sessionId}:history:${index}`
+      usedMessageIds.add(id)
+      const providerTime = typeof message.ts === 'string' ? Date.parse(message.ts) : NaN
+      const candidateTime = Number.isFinite(providerTime) ? providerTime : messageBaseTime + index
+      const messageTime = Math.max(candidateTime, previousMessageTime + 1)
+      previousMessageTime = messageTime
+      return {
+        id,
+        sessionId,
+        role: message.role,
+        content: message.content,
+        ts: new Date(messageTime).toISOString(),
+        status: 'complete',
+      }
+    })
+    const nativeSessionOrigin = {
+      sourceKey: native.sourceKey,
+      nativeSessionId: native.nativeSessionId,
+      providerKind: native.providerKind,
+      providerInstanceId: native.providerInstanceId,
+      importedAt: ts,
+      ...(details.historyTruncated || retained.length < rawMessages.length ? { historyTruncated: true } : {}),
+    }
+    const label = optionalTrimmedString(native.title) ?? `${provider.labelPrefix} imported chat`
+    this.#host.state().sessions[sessionId] = {
+      sessionId,
+      nodeId: sessionId,
+      backend: provider.backend,
+      backendSessionId: native.nativeSessionId,
+      providerKind: provider.providerKind,
+      providerInstanceId: provider.providerInstanceId,
+      providerSessionId: native.nativeSessionId,
+      nativeSessionOrigin,
+      agent: provider.agent,
+      label,
+      prompt: '',
+      cwd: workspace.cwd,
+      project: workspace.project,
+      role: 'worker',
+      status: 'idle',
+      createdAt: ts,
+      updatedAt: ts,
+      chunks: [],
+      messages,
+      nativeEvents: [],
+      runtimeEvents: [],
+      runtimeActivities: [],
+      runtimeRequests: [],
+      runtimeUserInputRequests: [],
+      runtimePlans: [],
+      runtimeSettings: normalizeProviderRuntimeSettings({
+        runtimeMode: 'approval-required',
+        ...(optionalTrimmedString(native.model) ? { model: native.model.trim() } : {}),
+      }),
+    }
+    this.#host.state().nodes.push({
+      nodeId: sessionId,
+      sessionId,
+      label,
+      role: 'worker',
+      agent: provider.agent,
+      status: 'idle',
+      position: {
+        x: 96 + (this.#host.state().nodes.length % 4) * 280,
+        y: 96 + Math.floor(this.#host.state().nodes.length / 4) * 180,
+      },
+    })
+    this.#host.appendKernelEvent('session.created', {
+      sessionId,
+      label,
+      role: 'worker',
+      providerKind: provider.providerKind,
+      agent: provider.agent,
+      cwd: workspace.cwd,
+      nativeSessionOrigin: clone(nativeSessionOrigin),
+    }, ctx, { reason: 'Imported native session history without starting a provider turn.' })
+    this.#host.touch()
+    this.#host.broadcast({ type: 'session.created', sessionId, state: this.#host.getState() })
+    return { sessionId, alreadyImported: false, state: this.#host.getState() }
   }
 
   cmdForkSession(input: JsonRecord = {}, ctx: JsonRecord) {

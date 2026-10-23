@@ -49,7 +49,7 @@ export function RuntimeInteractionPanel({
   return (
     <div className="shrink-0 border-b border-ink-line bg-ink px-3.5 py-3">
       <div className="mb-2 flex items-center gap-2 font-mono">
-        <span className="text-[10px] uppercase tracking-[0.16em] text-term-amber">Action needed</span>
+        <span className="text-[10px] tracking-[0.16em] text-term-amber">Action needed</span>
         <span className="ml-auto rounded border border-term-amber/30 bg-term-amber/10 px-1.5 py-0.5 text-[10px] tabular-nums text-term-amber">
           {requests.length + userInputRequests.length}
         </span>
@@ -67,14 +67,14 @@ export function RuntimeInteractionPanel({
                   {request.body ? (
                     <p className="mt-1 max-h-24 overflow-y-auto whitespace-pre-wrap break-words text-[11.5px] leading-5 text-term-dim">{request.body}</p>
                   ) : null}
-                  <div className="mt-1 text-[10.5px] uppercase tracking-[0.08em] text-term-faint">
+                  <div className="mt-1 text-[10.5px] tracking-[0.08em] text-term-faint">
                     {requestKindLabels[request.kind]} · {formatClock(request.createdAt)}
                   </div>
                 </div>
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 <Button
-                  className="h-8 justify-center font-mono text-[11px] uppercase tracking-[0.08em]"
+                  className="h-8 justify-center font-mono text-[11px] tracking-[0.08em]"
                   disabled={isPending}
                   onClick={() => onRespond(request, 'accept')}
                 >
@@ -82,7 +82,7 @@ export function RuntimeInteractionPanel({
                   Allow once
                 </Button>
                 <Button
-                  className="h-8 justify-center font-mono text-[11px] uppercase tracking-[0.08em]"
+                  className="h-8 justify-center font-mono text-[11px] tracking-[0.08em]"
                   variant="outline"
                   disabled={isPending}
                   onClick={() => onRespond(request, 'acceptForSession')}
@@ -91,7 +91,7 @@ export function RuntimeInteractionPanel({
                   Allow session
                 </Button>
                 <Button
-                  className="h-8 justify-center font-mono text-[11px] uppercase tracking-[0.08em]"
+                  className="h-8 justify-center font-mono text-[11px] tracking-[0.08em]"
                   variant="outline"
                   disabled={isPending}
                   onClick={() => onRespond(request, 'decline')}
@@ -100,7 +100,7 @@ export function RuntimeInteractionPanel({
                   Decline
                 </Button>
                 <Button
-                  className="h-8 justify-center font-mono text-[11px] uppercase tracking-[0.08em]"
+                  className="h-8 justify-center font-mono text-[11px] tracking-[0.08em]"
                   variant="outline"
                   disabled={isPending}
                   onClick={() => onRespond(request, 'cancel')}
@@ -139,7 +139,7 @@ export function RuntimeInteractionPanel({
                         : '';
                     return (
                       <div key={question.id} className="rounded-md border border-ink-line/80 bg-ink/70 p-2.5">
-                        <div className="text-[11px] uppercase tracking-[0.08em] text-term-faint">{question.header ?? 'Question'}</div>
+                        <div className="text-[11px] tracking-[0.08em] text-term-faint">{question.header ?? 'Question'}</div>
                         <div className="mt-1 whitespace-pre-wrap break-words text-[12px] leading-5 text-term-name">{question.label}</div>
                         {question.isSecret ? (
                           <div className="mt-1 text-[10.5px] leading-4 text-term-amber">Secret input requested; the answer is stored in session history.</div>
@@ -230,7 +230,7 @@ export function RuntimeInteractionPanel({
                 />
               )}
               <Button
-                className="mt-2 h-8 w-full justify-center font-mono text-[11px] uppercase tracking-[0.08em]"
+                className="mt-2 h-8 w-full justify-center font-mono text-[11px] tracking-[0.08em]"
                 disabled={isPending || !canSubmit}
                 onClick={() => onAnswer(request)}
               >

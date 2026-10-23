@@ -73,26 +73,26 @@ export function WorkingTreeDiffPanel({
             <section className="border-b border-border px-3 py-3">
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-lg border border-ink-line bg-ink px-2.5 py-2">
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-term-faint">files</div>
+                  <div className="text-[10px] tracking-[0.12em] text-term-faint">Files</div>
                   <div className="mt-1 text-[18px] leading-none text-term-name">{diff.totals.files}</div>
                 </div>
                 <div className="rounded-lg border border-term-green/25 bg-term-green/10 px-2.5 py-2">
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-term-green">added</div>
+                  <div className="text-[10px] tracking-[0.12em] text-term-green">Added</div>
                   <div className="mt-1 text-[18px] leading-none text-term-green">+{diff.totals.additions}</div>
                 </div>
                 <div className="rounded-lg border border-term-rose/25 bg-term-rose/10 px-2.5 py-2">
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-term-rose">removed</div>
+                  <div className="text-[10px] tracking-[0.12em] text-term-rose">Removed</div>
                   <div className="mt-1 text-[18px] leading-none text-term-rose">-{diff.totals.deletions}</div>
                 </div>
               </div>
 
               <div className="mt-2 grid gap-1.5 text-[11px] leading-5">
                 <div className="flex min-w-0 gap-2">
-                  <span className="w-14 shrink-0 text-term-dim2">range</span>
+                  <span className="w-14 shrink-0 text-term-dim2">Range</span>
                   <span className="truncate text-term-cyan">{diffRangeLabel(diff)}</span>
                 </div>
                 <div className="flex min-w-0 gap-2">
-                  <span className="w-14 shrink-0 text-term-dim2">updated</span>
+                  <span className="w-14 shrink-0 text-term-dim2">Updated</span>
                   <span className="truncate text-term-dim">{formatTimestamp(diff.generatedAt)}</span>
                 </div>
               </div>
@@ -100,7 +100,7 @@ export function WorkingTreeDiffPanel({
 
             {diff.statusEntries.length ? (
               <section className="border-b border-border px-3 py-3">
-                <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-term-dim2">Git status</div>
+                <div className="mb-2 text-[10px] tracking-[0.16em] text-term-dim2">Git status</div>
                 <pre className="max-h-28 overflow-auto rounded-lg border border-ink-line bg-ink px-2.5 py-2 text-[11px] leading-5 text-term-dim">
                   {diff.statusEntries.join('\n')}
                 </pre>
@@ -109,7 +109,7 @@ export function WorkingTreeDiffPanel({
 
             <section className="border-b border-border px-3 py-3">
               <div className="mb-2 flex items-center gap-2">
-                <span className="text-[10px] uppercase tracking-[0.16em] text-term-dim2">Files</span>
+                <span className="text-[10px] tracking-[0.16em] text-term-dim2">Files</span>
                 <span className="ml-auto text-[10.5px] tabular-nums text-term-faint">{diff.files.length}</span>
               </div>
 
@@ -135,10 +135,10 @@ export function WorkingTreeDiffPanel({
 
             <section className="px-3 py-3">
               <div className="mb-2 flex items-center gap-2">
-                <span className="text-[10px] uppercase tracking-[0.16em] text-term-dim2">Patch</span>
+                <span className="text-[10px] tracking-[0.16em] text-term-dim2">Patch</span>
                 {diff.truncated ? (
-                  <span className="ml-auto rounded border border-term-amber/30 bg-term-amber/10 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.08em] text-term-amber">
-                    truncated
+                  <span className="ml-auto rounded border border-term-amber/30 bg-term-amber/10 px-1.5 py-0.5 text-[10px] tracking-[0.08em] text-term-amber">
+                    Truncated
                   </span>
                 ) : null}
               </div>

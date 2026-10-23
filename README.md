@@ -267,6 +267,28 @@ npm install
 npm run dev
 ```
 
+Generated design, verification, and acceptance artifacts use the repository's
+`outputs/` directory. Local artifacts are ignored by Git, apart from the existing
+graph acceptance screenshots retained in version control.
+
+### Import existing Codex / Claude Code chats
+
+Choose **Import chat** in the sidebar, select a provider profile, and search or
+preview its local history. Confirm the project folder and import the chat into
+the list and graph. Sending a message continues its original native session ID.
+Browsing and importing do not start a model turn; importing twice opens the
+existing node.
+
+History follows the selected profile's provider home. Choose a different project
+folder if the original folder has moved. Displayed and imported text is limited
+to the latest 1000 messages or 2 MiB, with a visible truncation notice; native
+continuation retains the provider's original context. Wait for any current turn
+in the original app to finish before continuing here. Import does not attach to
+that app's running process.
+
+This feature updates Electron main and preload. Restart `npm run dev` when
+updating an already running development build.
+
 ## Project status
 
 looperators is an early alpha. Interfaces, storage contracts, and advanced
